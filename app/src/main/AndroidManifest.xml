@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS"/>
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.READ_CALL_LOG"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:maxSdkVersion="32" android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:maxSdkVersion="32" android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"/>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
+        </intent>
+        <package android:name="com.whatsapp"/>
+        <package android:name="com.whatsapp.w4b"/>
+        <package android:name="com.instagram.android"/>
+        <package android:name="com.facebook.katana"/>
+        <package android:name="com.twitter.android"/>
+        <package android:name="com.snapchat.android"/>
+        <package android:name="org.telegram.messenger"/>
+        <package android:name="com.linkedin.android"/>
+        <package android:name="com.instagram.barcelona"/>
+        <package android:name="com.pinterest"/>
+        <package android:name="com.discord"/>
+        <package android:name="com.reddit.frontpage"/>
+        <package android:name="com.google.android.youtube"/>
+        <package android:name="com.google.android.gm"/>
+        <package android:name="com.google.android.apps.maps"/>
+        <package android:name="com.android.chrome"/>
+        <package android:name="com.google.android.apps.docs"/>
+        <package android:name="com.google.android.apps.meetings"/>
+        <package android:name="com.google.android.apps.photos"/>
+        <package android:name="com.google.android.calendar"/>
+        <package android:name="com.google.android.apps.translate"/>
+        <package android:name="com.google.android.apps.nbu.paisa.user"/>
+        <package android:name="com.android.vending"/>
+        <package android:name="com.google.android.googlequicksearchbox"/>
+        <package android:name="com.google.android.keep"/>
+        <package android:name="com.google.android.apps.youtube.music"/>
+        <package android:name="com.spotify.music"/>
+        <package android:name="com.netflix.mediaclient"/>
+        <package android:name="in.startv.hotstar"/>
+        <package android:name="com.amazon.avod.thirdpartyclient"/>
+        <package android:name="com.jio.jioplay.tv"/>
+        <package android:name="com.jio.media.jiobeats"/>
+        <package android:name="com.gaana"/>
+        <package android:name="com.bsbportal.music"/>
+        <package android:name="com.mxtech.videoplayer.ad"/>
+        <package android:name="org.videolan.vlc"/>
+        <package android:name="com.graymatrix.did"/>
+        <package android:name="com.msmpl.livsports"/>
+        <package android:name="in.amazon.mShop.android.shopping"/>
+        <package android:name="com.flipkart.android"/>
+        <package android:name="com.meesho.supply"/>
+        <package android:name="com.myntra.android"/>
+        <package android:name="net.one97.paytm"/>
+        <package android:name="com.phonepe.app"/>
+        <package android:name="in.swiggy.android"/>
+        <package android:name="com.application.zomato"/>
+        <package android:name="com.grofers.customerapp"/>
+        <package android:name="com.bigbasket"/>
+        <package android:name="com.zeptonow.app"/>
+        <package android:name="com.fsn.nykaa"/>
+        <package android:name="com.google.android.dialer"/>
+        <package android:name="com.google.android.contacts"/>
+        <package android:name="com.google.android.apps.messaging"/>
+        <package android:name="com.google.android.deskclock"/>
+        <package android:name="com.google.android.calculator"/>
+        <package android:name="com.google.android.apps.nbu.files"/>
+        <package android:name="com.android.settings"/>
+        <package android:name="com.zerodha.kite3"/>
+        <package android:name="com.nextbillion.groww"/>
+        <package android:name="in.upstox.app"/>
+        <package android:name="com.moneycontrol.mc"/>
+        <package android:name="com.nis.android"/>
+        <package android:name="com.google.android.apps.magazines"/>
+        <package android:name="com.ubercab"/>
+        <package android:name="com.olacabs.customer"/>
+        <package android:name="com.rapido.passenger"/>
+        <package android:name="cris.org.in.prs.ima"/>
+        <package android:name="com.makemytrip"/>
+        <package android:name="notion.id"/>
+        <package android:name="us.zoom.videomeetings"/>
+        <package android:name="com.microsoft.teams"/>
+        <package android:name="com.microsoft.office.word"/>
+        <package android:name="com.microsoft.office.excel"/>
+        <package android:name="com.microsoft.office.powerpoint"/>
+        <package android:name="com.microsoft.office.outlook"/>
+        <package android:name="com.microsoft.skydrive"/>
+        <package android:name="com.skype.raider"/>
+        <package android:name="com.openai.chatgpt"/>
+        <package android:name="com.anthropic.claude"/>
+        <package android:name="com.pubg.imobile"/>
+        <package android:name="com.dts.freefireth"/>
+        <package android:name="com.activision.callofduty.shooter"/>
+        <package android:name="com.ludo.king"/>
+        <package android:name="com.chess"/>
+        <package android:name="com.adda52rummy.cards"/>
+        <intent>
+            <action android:name="androidx.camera.extensions.action.VENDOR_ACTION"/>
+        </intent>
+    </queries>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <permission android:name="com.flexfly.ultron.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" android:protectionLevel="signature"/>
+    <uses-permission android:name="com.flexfly.ultron.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
+    <application android:allowBackup="true" android:appComponentFactory="androidx.core.app.CoreComponentFactory" android:extractNativeLibs="false" android:icon="@mipmap/ic_launcher" android:label="Ultron" android:roundIcon="@mipmap/ic_launcher_round" android:supportsRtl="true" android:theme="@style/Theme.Ultron" android:usesCleartextTraffic="true">
+        <activity android:exported="true" android:launchMode="singleTop" android:name="com.flexfly.ultron.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:exported="false" android:name="com.flexfly.ultron.UltronCameraActivity" android:screenOrientation="portrait" android:theme="@style/Theme.AppCompat.NoActionBar"/>
+        <service android:exported="false" android:foregroundServiceType="camera|microphone" android:name="com.flexfly.ultron.service.WakeWordService" android:stopWithTask="false"/>
+        <service android:exported="true" android:label="Ultron Notification Reader" android:name="com.flexfly.ultron.service.UltronNotificationListener" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService"/>
+            </intent-filter>
+        </service>
+        <service android:exported="true" android:label="Ultron Voice Assistant" android:name="com.flexfly.ultron.automation.UltronAccessibilityService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_service_config"/>
+        </service>
+        <receiver android:exported="true" android:name="com.flexfly.ultron.receiver.UltronDeviceAdminReceiver" android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data android:name="android.app.device_admin" android:resource="@xml/device_admin_policies"/>
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:exported="false" android:name="com.flexfly.ultron.comms.CallReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:exported="false" android:name="com.flexfly.ultron.receiver.ChargingReceiver"/>
+        <receiver android:exported="false" android:name="com.flexfly.ultron.receiver.ReminderReceiver"/>
+        <provider android:authorities="com.flexfly.ultron.provider" android:exported="false" android:grantUriPermissions="true" android:name="androidx.core.content.FileProvider">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths"/>
+        </provider>
+        <service android:directBootAware="true" android:exported="false" android:name="com.google.mlkit.common.internal.MlKitComponentDiscoveryService">
+            <meta-data android:name="com.google.firebase.components:com.google.mlkit.nl.translate.NaturalLanguageTranslateRegistrar" android:value="com.google.firebase.components.ComponentRegistrar"/>
+            <meta-data android:name="com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar" android:value="com.google.firebase.components.ComponentRegistrar"/>
+        </service>
+        <provider android:authorities="com.flexfly.ultron.mlkitinitprovider" android:exported="false" android:initOrder="99" android:name="com.google.mlkit.common.internal.MlKitInitProvider"/>
+        <uses-library android:name="androidx.camera.extensions.impl" android:required="false"/>
+        <service android:enabled="false" android:exported="false" android:name="androidx.camera.core.impl.MetadataHolderService">
+            <meta-data android:name="androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER" android:value="androidx.camera.camera2.Camera2Config$DefaultProvider"/>
+        </service>
+        <activity android:exported="false" android:name="com.google.android.gms.common.api.GoogleApiActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+        <provider android:authorities="com.flexfly.ultron.androidx-startup" android:exported="false" android:name="androidx.startup.InitializationProvider">
+            <meta-data android:name="androidx.emoji2.text.EmojiCompatInitializer" android:value="androidx.startup"/>
+            <meta-data android:name="androidx.lifecycle.ProcessLifecycleInitializer" android:value="androidx.startup"/>
+            <meta-data android:name="androidx.profileinstaller.ProfileInstallerInitializer" android:value="androidx.startup"/>
+        </provider>
+        <uses-library android:name="androidx.window.extensions" android:required="false"/>
+        <uses-library android:name="androidx.window.sidecar" android:required="false"/>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+        <receiver android:directBootAware="false" android:enabled="true" android:exported="true" android:name="androidx.profileinstaller.ProfileInstallReceiver" android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SKIP_FILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION"/>
+            </intent-filter>
+        </receiver>
+        <service android:exported="false" android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery">
+            <meta-data android:name="backend:com.google.android.datatransport.cct.CctBackendFactory" android:value="cct"/>
+        </service>
+        <service android:exported="false" android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService" android:permission="android.permission.BIND_JOB_SERVICE"/>
+        <receiver android:exported="false" android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"/>
+    </application>
+</manifest>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App theme (recovered from the decompiled resources). Compose supplies the real
+         colors via UltronTheme; this base theme only sets the window chrome. -->
+    <style name="Theme.Ultron" parent="@android:style/Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Transparent" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

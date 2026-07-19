@@ -1,0 +1,19 @@
+# ── MaxNova secrets template ──────────────────────────────────────────
+# Copy this file to `local.properties` and fill in real values.
+# `local.properties` is git-ignored and must NEVER be committed.
+#
+# The Android SDK location line is also required by Gradle:
+# sdk.dir=C:\\Android
+
+# License activation server (recovered: Base64-hidden in AccessKeyVerifier).
+LICENSE_SERVER_URL=http://89.116.134.248:8000
+
+# OpenWeatherMap default API key.
+# NOTE: a key was hardcoded in the original AppPreferences.kt and is now
+# considered LEAKED — generate a fresh key at https://openweathermap.org/api
+# and rotate the old one.
+OPENWEATHER_DEFAULT_KEY=
+
+# Runtime keys (Gemini, OpenRouter/Llama-Vision) are entered by the user
+# during onboarding and stored in app preferences — they are NOT build-time
+# secrets and do not belong here.
