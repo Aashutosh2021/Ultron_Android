@@ -11,3 +11,5 @@
 *.apk
 *.keystore
 !debug.keystore
+docs
+oww_temp

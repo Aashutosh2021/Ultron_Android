@@ -69,13 +69,4 @@ enum class AppScreen {
     MAIN,
 }
 
-/**
- * UI state for the access-key verification flow ([com.flexfly.ultron.security.AccessKeyVerifier]).
- * Recovered from the `KeyVerifyState` sealed hierarchy.
- */
-sealed class KeyVerifyState {
-    data object Idle : KeyVerifyState()
-    data object Verifying : KeyVerifyState()
-    data class Success(val newKey: String? = null) : KeyVerifyState()
-    data class Error(val message: String) : KeyVerifyState()
-}
+

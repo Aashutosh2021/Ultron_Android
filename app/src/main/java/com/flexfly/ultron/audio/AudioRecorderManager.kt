@@ -4,6 +4,8 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.audiofx.AcousticEchoCanceler
+import android.media.audiofx.AutomaticGainControl
+import android.media.audiofx.NoiseSuppressor
 import android.util.Base64
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +25,8 @@ class AudioRecorderManager {
     val audioChunks: SharedFlow<String> = _audioChunks
 
     private var aec: AcousticEchoCanceler? = null
+    private var agc: AutomaticGainControl? = null
+    private var ns: NoiseSuppressor? = null
     private var audioRecord: AudioRecord? = null
 
     @Volatile
@@ -46,12 +50,18 @@ class AudioRecorderManager {
         audioRecord = record
         val audioSessionId = record.audioSessionId
         if (AcousticEchoCanceler.isAvailable()) {
-            val created = AcousticEchoCanceler.create(audioSessionId)
-            aec = created
-            created?.enabled = true
+            aec = AcousticEchoCanceler.create(audioSessionId)?.apply { enabled = true }
             Log.d("AudioRecorder", "✅ AEC enabled")
         } else {
             Log.w("AudioRecorder", "⚠️ AEC not available on this device")
+        }
+        if (AutomaticGainControl.isAvailable()) {
+            agc = AutomaticGainControl.create(audioSessionId)?.apply { enabled = true }
+            Log.d("AudioRecorder", "✅ AGC enabled")
+        }
+        if (NoiseSuppressor.isAvailable()) {
+            ns = NoiseSuppressor.create(audioSessionId)?.apply { enabled = true }
+            Log.d("AudioRecorder", "✅ NS enabled")
         }
         audioRecord?.startRecording()
         isRecording = true
@@ -61,10 +71,25 @@ class AudioRecorderManager {
             while (isRecording && isActive) {
                 val bytesRead = audioRecord?.read(buffer, 0, buffer.size) ?: 0
                 if (bytesRead > 0 && !isMuted) {
+                    applyDigitalGain(buffer, bytesRead, 2.5f)
                     val base64Audio = Base64.encodeToString(buffer.copyOf(bytesRead), Base64.NO_WRAP)
                     _audioChunks.emit(base64Audio)
                 }
             }
+        }
+    }
+
+    private fun applyDigitalGain(buffer: ByteArray, bytesRead: Int, gainFactor: Float) {
+        if (gainFactor == 1.0f) return
+        for (i in 0 until bytesRead step 2) {
+            if (i + 1 >= bytesRead) break
+            val low = buffer[i].toInt() and 0xFF
+            val high = buffer[i + 1].toInt()
+            val sample = (high shl 8) or low
+            val boosted = (sample * gainFactor).toInt()
+            val clamped = maxOf(Short.MIN_VALUE.toInt(), minOf(Short.MAX_VALUE.toInt(), boosted))
+            buffer[i] = (clamped and 0xFF).toByte()
+            buffer[i + 1] = ((clamped shr 8) and 0xFF).toByte()
         }
     }
 
@@ -73,6 +98,10 @@ class AudioRecorderManager {
         recordingJob?.cancel()
         aec?.release()
         aec = null
+        agc?.release()
+        agc = null
+        ns?.release()
+        ns = null
         audioRecord?.stop()
         audioRecord?.release()
         audioRecord = null

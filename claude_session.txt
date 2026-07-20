@@ -1,1 +1,2 @@
 kimi --session 16e50b26-bcf8-47c5-9b52-fab45554f4d5
+claude --resume 7c229087-c474-4386-a321-3461f272949f

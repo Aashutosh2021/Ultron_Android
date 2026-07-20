@@ -19,6 +19,13 @@ class AudioPlayerManager {
     private val audioQueue = Channel<ByteArray>(Channel.UNLIMITED)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    // Wall-clock time until which queued PCM keeps the speaker busy. Each queued
+    // chunk extends it by its real duration, so callers can know when Ultron's
+    // voice has actually stopped coming out of the speaker (the server-side VAD
+    // "turn complete" arrives while several seconds of audio are still draining).
+    @Volatile
+    private var tailUntilMs: Long = 0L
+
     fun initialize() {
         try {
             val track = AudioTrack.Builder()
@@ -66,12 +73,31 @@ class AudioPlayerManager {
     fun playAudioChunk(base64Audio: String) {
         try {
             val decode = Base64.decode(base64Audio, Base64.NO_WRAP)
-            if (decode.isNotEmpty() && audioQueue.trySend(decode).isFailure) {
-                Log.w(TAG, "Queue full, chunk dropped")
+            if (decode.isNotEmpty()) {
+                // Each PCM chunk extends the tail by its real duration (sample count / rate).
+                // 16-bit = 2 bytes/sample, 24kHz.
+                val samples = decode.size / 2
+                val durationMs = (samples * 1000L) / SAMPLE_RATE
+                val now = System.currentTimeMillis()
+                tailUntilMs = maxOf(now, tailUntilMs) + durationMs
+                if (audioQueue.trySend(decode).isFailure) {
+                    Log.w(TAG, "Queue full, chunk dropped")
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Decode error: ${e.message}")
         }
+    }
+
+    /**
+     * Returns ms until the last queued audio chunk finishes playing. Zero if the
+     * queue is empty/drained. Callers use this to keep the mic muted until Ultron's
+     * voice has *actually* stopped coming out of the speaker (not just when the
+     * server-side VAD says the turn is over).
+     */
+    fun remainingPlaybackMs(): Long {
+        val now = System.currentTimeMillis()
+        return maxOf(0L, tailUntilMs - now)
     }
 
     fun stopAndClear() {
@@ -79,6 +105,7 @@ class AudioPlayerManager {
             while (audioQueue.tryReceive().isSuccess) {
                 // drain queued chunks
             }
+            tailUntilMs = 0L
             audioTrack?.pause()
             audioTrack?.flush()
             audioTrack?.play()

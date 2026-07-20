@@ -398,7 +398,9 @@ class GeminiLiveSession(
                 SILENT_PREFIXES.any { toolLower.startsWith(it) }
 
             when {
-                result.contains("contacts mein nahi mila") || result.contains("nahi mila") -> {
+                // FIXED: was inverted — "nahi mila" results were entering the success tree.
+                // Now negated: success results route to the main handling tree, failures to else.
+                !(result.contains("contacts mein nahi mila") || result.contains("nahi mila")) -> {
                     when {
                         result.startsWith("[MULTI_WHATSAPP_CONTACT]") ->
                             injectMessage("[SYSTEM] Multiple contacts mile: ${result.removePrefix("[MULTI_WHATSAPP_CONTACT]").trim()} — boss se poochho konse ko WhatsApp message bheju?")

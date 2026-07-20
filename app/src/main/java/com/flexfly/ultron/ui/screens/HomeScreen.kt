@@ -137,7 +137,7 @@ private fun HomeHeader(name: String, now: Date, isRunning: Boolean) {
         Column(modifier = Modifier.weight(1f)) {
             Text(greeting(name), color = SubText, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             Text(
-                SimpleDateFormat("HH:mm", Locale.getDefault()).format(now),
+                SimpleDateFormat("hh:mm a", Locale.getDefault()).format(now),
                 color = Color.White,
                 fontSize = 52.sp,
                 fontWeight = FontWeight.ExtraBold,

@@ -257,10 +257,11 @@ object ToolHandler {
                 } else {
                     val service = UltronAccessibilityService.getInstance()
                     if (service == null) {
-                        if (UltronAccessibilityService.isEnabledInSettings(context))
-                            "Accessibility service abhi reconnect ho rahi hai Boss — ek second baad dobara bolo."
-                        else
+                        if (UltronAccessibilityService.isEnabledInSettings(context)) {
+                            "Accessibility service settings mein enabled hai par active nahi hai Boss! Settings mein jaakar Ultron accessibility ko ek baar OFF karke ON kijiye."
+                        } else {
                             "Accessibility service on nahi hai Boss! Settings mein Ultron ko enable karo."
+                        }
                     } else {
                         val question = if (toolName.contains(":")) arg() else ""
                         service.captureScreen { bitmap ->

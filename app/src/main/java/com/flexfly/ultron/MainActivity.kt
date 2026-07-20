@@ -19,7 +19,6 @@ import com.flexfly.ultron.ai.ToolHandler
 import com.flexfly.ultron.data.AppPreferences
 import com.flexfly.ultron.data.DatabaseHelper
 import com.flexfly.ultron.model.Message
-import com.flexfly.ultron.security.AccessKeyVerifier
 import com.flexfly.ultron.service.UltronNotificationListener
 import com.flexfly.ultron.service.WakeWordService
 import com.flexfly.ultron.ui.AppRoot
@@ -306,26 +305,6 @@ class MainActivity : ComponentActivity() {
         db = DatabaseHelper(this)
         prefs = AppPreferences(this)
         messagesState.addAll(db.getRecentMessages(50))
-
-        if (prefs.accessKey.isNotBlank()) {
-            val androidId = Settings.Secure.getString(contentResolver, "android_id") ?: ""
-            AccessKeyVerifier.ensureDeviceIdStored(this, prefs.accessKey, androidId) {
-                runOnUiThread {
-                    prefs.accessKey = ""
-                    prefs.userName = ""
-                    prefs.language = ""
-                    prefs.googleApiKey = ""
-                    prefs.isServiceEnabled = false
-                    stopService(Intent(this, WakeWordService::class.java))
-                    val intent = Intent(this, MainActivity::class.java)
-                    // RECOVERY NOTE: addFlags(268468224) ==
-                    // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK.
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    startActivity(intent)
-                    finish()
-                }
-            }
-        }
 
         isRunningState.value = prefs.isServiceEnabled
 

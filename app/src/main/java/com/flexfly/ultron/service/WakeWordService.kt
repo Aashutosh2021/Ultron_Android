@@ -10,6 +10,8 @@ import android.graphics.PointF
 import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.media.audiofx.AutomaticGainControl
+import android.media.audiofx.NoiseSuppressor
 import android.content.Context
 import android.os.Build
 import android.os.IBinder
@@ -92,9 +94,12 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
     // dropped session) — otherwise the phone stays silenced/vibrate for the whole call.
     private var ringRestoreJob: Job? = null
     private var voskAudioRecord: AudioRecord? = null
+    private var voskAgc: AutomaticGainControl? = null
+    private var voskNs: NoiseSuppressor? = null
     private var wakeWordJustDetected = false
     private var windowManager: WindowManager? = null
     private var cpuWakeLock: PowerManager.WakeLock? = null
+    private var micUnmuteJob: Job? = null
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     override val viewModelStore = ViewModelStore()
@@ -556,7 +561,11 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             callAudioManager?.isMuted = false
             if (callControl && getRecordingStarted() && !getActionCompleted()) {
                 setActionCompleted(true)
-                delay(1500L)
+                // Wait for the queued "theek hai" / "ok" tail to finish playing before cleanup.
+                val tailMs = notifAudioPlayer?.remainingPlaybackMs() ?: 0L
+                val waitMs = tailMs + 500L
+                Log.d(TAG, "🔇 Call action VAD off — waiting ${waitMs}ms for tail")
+                delay(waitMs)
                 Log.d(TAG, "✅ Call action done — cleanup & restart Vosk")
                 restoreRingVolume()
                 callAudioManager?.destroy()
@@ -566,9 +575,12 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             return
         }
         setAnnouncementDone(true)
-        Log.d(TAG, "✅ Ultron announcement done")
+        // Wait for the announcement audio to finish before acting.
+        val tailMs = notifAudioPlayer?.remainingPlaybackMs() ?: 0L
+        val waitMs = tailMs + 500L
+        Log.d(TAG, "✅ Ultron announcement done — waiting ${waitMs}ms for tail")
+        delay(waitMs)
         if (!callControl) {
-            delay(500L)
             restoreRingVolume()
             callAudioManager?.destroy()
             callAudioManager = null
@@ -697,17 +709,30 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         val player = AudioPlayerManager()
         player.initialize()
         notifAudioPlayer = player
+        var speechStarted = false
         notifGeminiSession = GeminiLiveSession(
             apiKey = prefs.googleApiKey,
             db = db,
             context = this,
             onAudioReceived = { audio ->
+                speechStarted = true
                 notifAudioPlayer?.playAudioChunk(audio)
             },
             onTranscriptReceived = { },
             onUserTranscriptReceived = { },
             onStatusChanged = { },
-            onVadStateChanged = { },
+            onVadStateChanged = { speaking ->
+                // When VAD says the turn is over, wait for queued audio to drain before cleanup.
+                if (!speaking && speechStarted) {
+                    mainScope.launch {
+                        val tailMs = notifAudioPlayer?.remainingPlaybackMs() ?: 0L
+                        val waitMs = tailMs + 500L
+                        Log.d(TAG, "🔇 One-shot VAD off — waiting ${waitMs}ms for tail")
+                        delay(waitMs)
+                        cleanupNotifSession()
+                    }
+                }
+            },
             onByeDetected = null,
             skipGreeting = true,
             callMessage = null,
@@ -725,8 +750,6 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
                             text = "[REMINDER] $text — Boss ko clearly aur warmly ek baar bolna, jaise 'Boss, yaad hai na, $text'"
                         }
                         notifGeminiSession?.injectMessage(text)
-                        delay(500L)
-                        mainScope.launch { cleanupNotifSession() }
                     }
                     GeminiLiveSession.ConnectionState.ERROR -> {
                         mainScope.launch { cleanupNotifSession() }
@@ -852,9 +875,8 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         var attempt = 0
         while (attempt < 3) {
             try {
-                // RECOVERY NOTE: AudioSource 6 = VOICE_RECOGNITION.
                 val record = AudioRecord(
-                    MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                    MediaRecorder.AudioSource.MIC,
                     SAMPLE_RATE,
                     android.media.AudioFormat.CHANNEL_IN_MONO,
                     android.media.AudioFormat.ENCODING_PCM_16BIT,
@@ -862,6 +884,15 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
                 )
                 voskAudioRecord = record
                 if (record.state == AudioRecord.STATE_INITIALIZED) {
+                    val sessionId = record.audioSessionId
+                    if (AutomaticGainControl.isAvailable()) {
+                        voskAgc = AutomaticGainControl.create(sessionId)?.apply { enabled = true }
+                        Log.d(TAG, "Vosk: Automatic Gain Control enabled")
+                    }
+                    if (NoiseSuppressor.isAvailable()) {
+                        voskNs = NoiseSuppressor.create(sessionId)?.apply { enabled = true }
+                        Log.d(TAG, "Vosk: Noise Suppressor enabled")
+                    }
                     break
                 }
             } catch (e: Exception) {
@@ -889,6 +920,14 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
                     if (read <= 0 || wakeWordJustDetected) {
                         continue
                     }
+                    
+                    // Apply digital gain factor of 2.5f to make far-field wake word capture highly sensitive
+                    val gainFactor = 2.5f
+                    for (i in 0 until read) {
+                        val boosted = (samples[i] * gainFactor).toInt()
+                        samples[i] = maxOf(Short.MIN_VALUE.toInt(), minOf(Short.MAX_VALUE.toInt(), boosted)).toShort()
+                    }
+
                     val byteCount = read * 2
                     val bytes = ByteArray(byteCount)
                     for (i in 0 until read) {
@@ -921,13 +960,22 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
     }
 
     private fun stopVoskListening() {
+        if (!isVoskListening) return
         isVoskListening = false
+        // Wait for the read loop to actually exit before releasing the AudioRecord,
+        // preventing "read() on a released AudioRecord" (Bug 7).
+        Thread.sleep(100L)
+        voskAgc?.release()
+        voskAgc = null
+        voskNs?.release()
+        voskNs = null
         try {
             voskAudioRecord?.stop()
             voskAudioRecord?.release()
             voskAudioRecord = null
         } catch (unused: Exception) {
         }
+        Log.d(TAG, "✅ Vosk stopped & released")
     }
 
     private fun extractText(json: String): String {
@@ -975,13 +1023,24 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             return false
         }
         val lower = text.lowercase(Locale.ROOT).trim()
-        if (WAKE_PHRASES.any { lower.contains(it) }) {
+
+        // Strong matches: "ultron" or clear variants — fire standalone.
+        if (lower.contains("ultron") || lower.contains("altron") || lower.contains("eltron") ||
+            lower.contains("all tron") || lower.contains("old tron")) {
             return true
         }
-        return (lower.contains("hello") || lower.contains("hey") || lower.contains("hi ")) &&
-            (lower.contains("ultron") || lower.contains("altron") || lower.contains("eltron") ||
-                lower.contains("all tron") || lower.contains("i will done") || lower.contains("old tron") ||
-                lower.contains("drawn") || lower.contains("drown"))
+
+        // Weaker phonetic mishearings ("drawn", "drown", "i will done", "i'll on") now
+        // require a greeting word ("hello", "hey", "hi") in the same utterance — prevents
+        // false wakes on normal speech containing those words (Bug 5).
+        val hasGreeting = lower.contains("hello") || lower.contains("hey") || lower.contains("hi ")
+        if (hasGreeting) {
+            return lower.contains("drawn") || lower.contains("drown") ||
+                   lower.contains("i will done") || lower.contains("i'll bet on") ||
+                   lower.contains("i'll on") || lower.contains("i was drawn")
+        }
+
+        return false
     }
 
     private fun onWakeWordDetected() {
@@ -1082,6 +1141,8 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         pendingNotifications.clear()
         isUltronCurrentlySpeaking = false
         isToolExecuting = false
+        micUnmuteJob?.cancel()
+        micUnmuteJob = null
         try {
             val view = overlayView
             if (view != null) {
@@ -1109,7 +1170,13 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             delay(1000L)
             wakeWordJustDetected = false
             recognizer?.reset()
-            startVoskListening()
+            // Only restart Vosk if no sessions are active — prevents two AudioRecords
+            // contending for the mic (Bug 7).
+            if (geminiSession == null && !notifSessionActive) {
+                startVoskListening()
+            } else {
+                Log.d(TAG, "⚠️ resumeWakeWord deferred — session still active")
+            }
         }
     }
 
@@ -1130,12 +1197,11 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             db = db,
             context = this,
             onAudioReceived = { audio ->
-                geminiAudioRecorder?.isMuted = true
-                isUltronSpeakingState.value = true
-                isUltronCurrentlySpeaking = true
-                audioPlayer?.playAudioChunk(audio)
-                resetSilenceTimer()
-                lastActivityTime = System.currentTimeMillis()
+                mainScope.launch {
+                    // Play immediately — no buffering, no artificial 1.5s lag.
+                    // The mic stays muted until the queued audio tail drains (onGeminiVadStateChanged).
+                    playAudioDirectly(audio)
+                }
             },
             onTranscriptReceived = { },
             onUserTranscriptReceived = {
@@ -1187,30 +1253,55 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         }
     }
 
+    private fun playAudioDirectly(audio: String) {
+        geminiAudioRecorder?.isMuted = true
+        isUltronSpeakingState.value = true
+        isUltronCurrentlySpeaking = true
+        audioPlayer?.playAudioChunk(audio)
+        resetSilenceTimer()
+        lastActivityTime = System.currentTimeMillis()
+    }
+
     private suspend fun onGeminiVadStateChanged(speaking: Boolean) {
-        isUserSpeakingState.value = speaking
-        if (!speaking) {
-            isUltronCurrentlySpeaking = false
-            isUltronSpeakingState.value = false
-            geminiAudioRecorder?.isMuted = false
-            if (!isToolExecuting) {
-                startSilenceTimer()
-            } else {
-                Log.d(TAG, "⏸️ Timer paused - tool still executing")
-            }
-            if (pendingNotifications.isNotEmpty()) {
-                val triple = pendingNotifications.removeAt(0)
-                delay(800L)
-                val message = if (triple.first != "__REMINDER__") {
-                    buildNotifMessage(triple.first, triple.second, triple.third)
-                } else {
-                    "[SYSTEM] ${triple.second}. Boss ko clearly batao."
-                }
-                geminiSession?.injectMessage(message)
-            }
-        } else {
+        if (speaking) {
+            isUserSpeakingState.value = true
+            // User interrupted — stop Ultron's playback immediately, cancel mic-unmute timer.
+            audioPlayer?.stopAndClear()
+            micUnmuteJob?.cancel()
+            micUnmuteJob = null
             resetSilenceTimer()
             lastActivityTime = System.currentTimeMillis()
+        } else {
+            // Server-side VAD says the turn is over, but queued audio is still playing.
+            // Keep the mic muted until the tail drains + 250ms margin so Ultron doesn't
+            // hear its own voice from the speaker (Bug 1). Only then inject pending notifications.
+            isUserSpeakingState.value = false
+            val tailMs = audioPlayer?.remainingPlaybackMs() ?: 0L
+            val waitMs = tailMs + 250L
+            Log.d(TAG, "🔇 VAD off — mic stays muted for ${waitMs}ms (tail=$tailMs)")
+            micUnmuteJob?.cancel()
+            micUnmuteJob = mainScope.launch {
+                delay(waitMs)
+                isUltronCurrentlySpeaking = false
+                isUltronSpeakingState.value = false
+                geminiAudioRecorder?.isMuted = false
+                Log.d(TAG, "🎤 Mic unmuted — tail drained")
+                if (!isToolExecuting) {
+                    startSilenceTimer()
+                } else {
+                    Log.d(TAG, "⏸️ Timer paused - tool still executing")
+                }
+                if (pendingNotifications.isNotEmpty()) {
+                    val triple = pendingNotifications.removeAt(0)
+                    delay(800L)
+                    val message = if (triple.first != "__REMINDER__") {
+                        buildNotifMessage(triple.first, triple.second, triple.third)
+                    } else {
+                        "[SYSTEM] ${triple.second}. Boss ko clearly batao."
+                    }
+                    geminiSession?.injectMessage(message)
+                }
+            }
         }
     }
 
@@ -1233,20 +1324,17 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             Log.d(TAG, "⏸️ Timer not started - activity ongoing")
             return
         }
+        // Reset lastActivityTime here so the timer always measures from *this* start call,
+        // preventing double-restart storms where idle < SILENCE_TIMEOUT_MS forever (Bug 8).
+        lastActivityTime = System.currentTimeMillis()
         Log.d(TAG, "⏱️ Silence timer started (${SILENCE_TIMEOUT_MS / 1000}s)")
         silenceJob = mainScope.launch {
             delay(SILENCE_TIMEOUT_MS)
-            val idle = System.currentTimeMillis() - lastActivityTime
             if (!isToolExecuting && !isUltronCurrentlySpeaking && !isUltronSpeakingState.value) {
-                if (idle < SILENCE_TIMEOUT_MS) {
-                    Log.d(TAG, "⏸️ Recent activity detected - restarting timer")
-                    startSilenceTimer()
-                } else {
-                    Log.d(TAG, "⏰ Silence timeout - dismissing")
-                    onByeWordDetected()
-                }
+                Log.d(TAG, "⏰ Silence timeout — dismissing")
+                onByeWordDetected()
             } else {
-                Log.d(TAG, "⏸️ Timer expired but activity detected - restarting")
+                Log.d(TAG, "⏸️ Timer expired but activity detected — restarting")
                 startSilenceTimer()
             }
         }
@@ -1291,7 +1379,6 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         private const val TAG = "WakeWordService"
 
         private var activeInstance: WakeWordService? = null
-        val WAKE_PHRASES: List<String> = listOf("ultron", "hello ultron", "hey ultron", "i will done", "all tron", "altron", "eltron", "drawn", "drown", "i was drawn", "i'll bet on", "i'll on")
         var ghostPointerCoordinates: MutableState<PointF?> = mutableStateOf(null)
 
         fun getActiveInstance(): WakeWordService? = activeInstance

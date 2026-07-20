@@ -832,8 +832,7 @@ class UltronAccessibilityService : AccessibilityService() {
                 val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as android.view.accessibility.AccessibilityManager
                 val services = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
                 for (service in services) {
-                    if (service.resolveInfo.serviceInfo.packageName == context.packageName &&
-                        service.resolveInfo.serviceInfo.name == expectedClass) {
+                    if (service.resolveInfo.serviceInfo.packageName == context.packageName) {
                         return true
                     }
                 }
@@ -846,7 +845,11 @@ class UltronAccessibilityService : AccessibilityService() {
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
             ) ?: return false
 
-            return enabled.contains(expectedClass) || enabled.contains("UltronAccessibilityService")
+            return enabled.contains(context.packageName) ||
+                enabled.contains(expectedClass) ||
+                enabled.contains("UltronAccessibilityService") ||
+                enabled.contains("NovaAccessibilityService") ||
+                enabled.contains("MJAccessibilityService")
         }
 
         fun isPhoneLocked(context: Context): Boolean {
