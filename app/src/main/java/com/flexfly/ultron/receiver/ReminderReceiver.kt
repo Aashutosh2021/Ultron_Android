@@ -1,4 +1,4 @@
-﻿package com.flexfly.ultron.receiver
+package com.flexfly.ultron.receiver
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 
 class ReminderReceiver : BroadcastReceiver() {
 
@@ -16,21 +16,21 @@ class ReminderReceiver : BroadcastReceiver() {
             return
         }
         val message = intent?.getStringExtra("reminder_message") ?: "Reminder Boss!"
-        Log.d("ReminderReceiver", "⏰ Reminder fired: $message")
+        Log.d("ReminderReceiver", "? Reminder fired: $message")
         showReminderNotification(context, message)
         val injected = "Boss, aapka reminder hai: $message"
-        val activeInstance = WakeWordService.getActiveInstance()
+        val activeInstance = VoiceService.getActiveInstance()
         if (activeInstance != null && activeInstance.isGeminiActive()) {
-            Log.d("ReminderReceiver", "💉 Injecting reminder to active session")
-            WakeWordService.getActiveInstance()?.injectReminderMessage(injected)
+            Log.d("ReminderReceiver", "?? Injecting reminder to active session")
+            VoiceService.getActiveInstance()?.injectReminderMessage(injected)
             return
         }
-        Log.d("ReminderReceiver", "🔔 Starting one-shot session for reminder")
-        val instance = WakeWordService.getActiveInstance()
+        Log.d("ReminderReceiver", "?? Starting one-shot session for reminder")
+        val instance = VoiceService.getActiveInstance()
         if (instance != null) {
             instance.startReminderSession(injected)
         } else {
-            Log.w("ReminderReceiver", "⚠️ WakeWordService not running — only notification shown")
+            Log.w("ReminderReceiver", "?? WakeWordService not running � only notification shown")
         }
     }
 
@@ -43,7 +43,7 @@ class ReminderReceiver : BroadcastReceiver() {
         notificationChannel.enableVibration(true)
         notificationManager.createNotificationChannel(notificationChannel)
         val build = NotificationCompat.Builder(context, "reminder_channel")
-            .setContentTitle("⏰ Ultron Reminder")
+            .setContentTitle("? Ultron Reminder")
             .setContentText(message)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setAutoCancel(true)

@@ -1,4 +1,4 @@
-﻿package com.flexfly.ultron.comms
+package com.flexfly.ultron.comms
 
 import android.content.Context
 import android.location.Location
@@ -8,7 +8,7 @@ import android.util.Log
 import com.flexfly.ultron.ai.TranslationManager
 import com.flexfly.ultron.data.AppPreferences
 import com.flexfly.ultron.info.WeatherManager
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,12 +23,12 @@ import kotlinx.coroutines.runBlocking
  * fresh-location callback, falling back to the last saved location in [AppPreferences].
  *
  * CROSS-FILE REFS TO VERIFY:
- *  - [WeatherManager]  → import guessed as `com.flexfly.ultron.info.WeatherManager`; it is an
+ *  - [WeatherManager]  ? import guessed as `com.flexfly.ultron.info.WeatherManager`; it is an
  *    `object` in the original `com.flexfly.ultron` root (getFreshLocation(context, (Location?) -> Unit)).
  *    Fix the import if it is placed in a different subpackage during conversion.
- *  - [AppPreferences] / `AppPreferences.FavoriteContact` → `com.flexfly.ultron.data`
- *  - [WakeWordService] → `com.flexfly.ultron.service`
- *  - [TranslationManager] → `com.flexfly.ultron.ai`
+ *  - [AppPreferences] / `AppPreferences.FavoriteContact` ? `com.flexfly.ultron.data`
+ *  - [WakeWordService] ? `com.flexfly.ultron.service`
+ *  - [TranslationManager] ? `com.flexfly.ultron.ai`
  */
 object EmergencySOSManager {
 
@@ -36,7 +36,7 @@ object EmergencySOSManager {
     private val scope = CoroutineScope(Dispatchers.Default)
 
     fun triggerSOS(context: Context, query: String): String {
-        Log.d(TAG, "🚨 triggerSOS: query='$query'")
+        Log.d(TAG, "?? triggerSOS: query='$query'")
         val emergencyContacts = AppPreferences(context).getEmergencyContacts()
         if (emergencyContacts.isEmpty()) {
             return "Boss, aapka koi emergency contact set nahi hai. Kripya app settings mein add karein."
@@ -129,7 +129,7 @@ object EmergencySOSManager {
                 } catch (ignored: Exception) {
                 }
             }
-            WakeWordService.getActiveInstance()?.injectReminderMessage(text)
+            VoiceService.getActiveInstance()?.injectReminderMessage(text)
         }
     }
 }

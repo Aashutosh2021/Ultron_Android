@@ -22,7 +22,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.content.ContextCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.flexfly.ultron.apps.YouTubeManager
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -549,7 +549,7 @@ class UltronAccessibilityService : AccessibilityService() {
 
     private fun tapGestureAt(x: Float, y: Float): Boolean {
         Handler(Looper.getMainLooper()).post {
-            WakeWordService.ghostPointerCoordinates.value = PointF(x, y)
+            VoiceService.ghostPointerCoordinates.value = PointF(x, y)
         }
         return try {
             val path = Path()
@@ -866,7 +866,7 @@ class UltronAccessibilityService : AccessibilityService() {
         fun notifyUnlockRequired(toolName: String) {
             val message = "Phone unlock karo Boss! Lock hai, '$toolName' execute nahi kar sakti."
             Handler(Looper.getMainLooper()).post {
-                WakeWordService.getActiveInstance()?.injectReminderMessage(message)
+                VoiceService.getActiveInstance()?.injectReminderMessage(message)
             }
             Log.d(TAG, "🔒 Locked: Cannot execute '$toolName'")
         }

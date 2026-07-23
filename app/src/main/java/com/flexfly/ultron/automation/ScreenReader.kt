@@ -1,4 +1,4 @@
-﻿package com.flexfly.ultron.automation
+package com.flexfly.ultron.automation
 
 import android.content.Context
 import android.graphics.PointF
@@ -8,7 +8,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import com.flexfly.ultron.i18n.HindiTransliterator
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 import java.util.Locale
 
 /**
@@ -22,7 +22,7 @@ import java.util.Locale
  * RECOVERY NOTE: `performAction(16)` is restored to ACTION_CLICK.
  *
  * Cross-file refs (best-guess imports):
- *  - [WakeWordService] (com.flexfly.ultron.service) — its companion exposes a Compose
+ *  - [WakeWordService] (com.flexfly.ultron.service) � its companion exposes a Compose
  *    `MutableState<PointF> ghostPointerCoordinates` used to animate the "ghost" tap.
  *  - [HindiTransliterator] (com.flexfly.ultron.i18n).
  */
@@ -31,18 +31,18 @@ object ScreenReader {
     private const val TAG = "ScreenReader"
 
     fun readScreen(context: Context): String {
-        Log.d(TAG, "📖 Reading screen...")
+        Log.d(TAG, "?? Reading screen...")
         val service = UltronAccessibilityService.getInstance()
         if (service == null) {
-            Log.e(TAG, "❌ Accessibility service not bound (enabledInSettings=${UltronAccessibilityService.isEnabledInSettings(context)})")
+            Log.e(TAG, "? Accessibility service not bound (enabledInSettings=${UltronAccessibilityService.isEnabledInSettings(context)})")
             return if (UltronAccessibilityService.isEnabledInSettings(context))
-                "Boss, accessibility service abhi reconnect ho rahi hai — ek second baad dobara bolo."
+                "Boss, accessibility service abhi reconnect ho rahi hai � ek second baad dobara bolo."
             else
-                "Boss, accessibility service on nahi hai — settings mein Ultron ko enable karo."
+                "Boss, accessibility service on nahi hai � settings mein Ultron ko enable karo."
         }
         val root = service.rootInActiveWindow
         if (root == null) {
-            Log.e(TAG, "❌ No active window")
+            Log.e(TAG, "? No active window")
             return "Boss, screen nahi mil rahi!"
         }
         val pkg = root.packageName?.toString() ?: ""
@@ -50,19 +50,19 @@ object ScreenReader {
         val allText = extractAllText(root)
         root.recycle()
         if (allText.isBlank()) {
-            Log.w(TAG, "⚠️ No text found on screen")
+            Log.w(TAG, "?? No text found on screen")
             return "Boss, screen pe koi text nahi hai!"
         }
-        Log.d(TAG, "✅ Extracted ${allText.length} characters")
+        Log.d(TAG, "? Extracted ${allText.length} characters")
         return buildScreenSummaryPrompt(appName, allText)
     }
 
     fun readAppScreen(context: Context, appName: String): String {
-        Log.d(TAG, "📖 Reading $appName screen...")
+        Log.d(TAG, "?? Reading $appName screen...")
         val service = UltronAccessibilityService.getInstance()
             ?: return if (UltronAccessibilityService.isEnabledInSettings(context))
-                "Boss, accessibility service abhi reconnect ho rahi hai — ek second baad dobara bolo."
-            else "Boss, accessibility service on nahi hai — settings mein Ultron ko enable karo."
+                "Boss, accessibility service abhi reconnect ho rahi hai � ek second baad dobara bolo."
+            else "Boss, accessibility service on nahi hai � settings mein Ultron ko enable karo."
         val root = service.rootInActiveWindow ?: return "Boss, screen nahi mil rahi!"
         val pkg = root.packageName?.toString() ?: ""
         if (!pkg.contains(appName, ignoreCase = true)) {
@@ -146,19 +146,19 @@ Important points only.
     }
 
     fun clickTextOnScreen(context: Context, searchText: String): Boolean {
-        Log.d(TAG, "🔍 Finding and clicking: $searchText")
+        Log.d(TAG, "?? Finding and clicking: $searchText")
         val service = UltronAccessibilityService.getInstance() ?: return false
         val root = service.rootInActiveWindow ?: return false
         val node = findNodeWithText(root, searchText)
         if (node != null) {
             // RECOVERY NOTE: performAction(16) == ACTION_CLICK
             val performed = node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            Log.d(TAG, if (performed) "✅ Clicked" else "❌ Click failed")
+            Log.d(TAG, if (performed) "? Clicked" else "? Click failed")
             node.recycle()
             root.recycle()
             return performed
         }
-        Log.w(TAG, "⚠️ Text not found: $searchText")
+        Log.w(TAG, "?? Text not found: $searchText")
         root.recycle()
         return false
     }
@@ -299,8 +299,8 @@ Important points only.
                 if (node.isClickable) {
                     if (onScreen) {
                         Handler(Looper.getMainLooper()).post {
-                            // RECOVERY NOTE: cross-file — WakeWordService companion Compose state.
-                            WakeWordService.ghostPointerCoordinates.value = PointF(centerX.toFloat(), centerY.toFloat())
+                            // RECOVERY NOTE: cross-file � WakeWordService companion Compose state.
+                            VoiceService.ghostPointerCoordinates.value = PointF(centerX.toFloat(), centerY.toFloat())
                         }
                     }
                     // RECOVERY NOTE: performAction(16) == ACTION_CLICK
@@ -323,7 +323,7 @@ Important points only.
                                 val pCenterX = pRect.centerX().toFloat()
                                 val pCenterY = pRect.centerY().toFloat()
                                 Handler(Looper.getMainLooper()).post {
-                                    WakeWordService.ghostPointerCoordinates.value = PointF(pCenterX, pCenterY)
+                                    VoiceService.ghostPointerCoordinates.value = PointF(pCenterX, pCenterY)
                                 }
                             }
                             // RECOVERY NOTE: performAction(16) == ACTION_CLICK
@@ -372,7 +372,7 @@ Important points only.
 
     private fun containsHindiCharacters(text: String): Boolean {
         for (c in text) {
-            if (c in 'ऀ'..'ॿ') return true
+            if (c in '?'..'?') return true
         }
         return false
     }

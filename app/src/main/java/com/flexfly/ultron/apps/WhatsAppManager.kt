@@ -1,4 +1,4 @@
-﻿package com.flexfly.ultron.apps
+package com.flexfly.ultron.apps
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import com.flexfly.ultron.automation.UltronAccessibilityService
 import com.flexfly.ultron.comms.ContactManager
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 
 /**
  * Drives WhatsApp for sending messages and placing voice/video calls by resolving a
@@ -19,7 +19,7 @@ import com.flexfly.ultron.service.WakeWordService
  * Recovered from `WhatsAppManager.kt`.
  *
  * RECOVERY NOTE: the decompiler substituted framework constants whose values equal the
- * intended literals — `org.slf4j.Marker.ANY_NON_NULL_MARKER` == "+" and
+ * intended literals � `org.slf4j.Marker.ANY_NON_NULL_MARKER` == "+" and
  * `NotificationCompat.CATEGORY_CALL` == "call". The original literals are restored here.
  */
 object WhatsAppManager {
@@ -39,7 +39,7 @@ object WhatsAppManager {
     }
 
     fun sendMessage(context: Context, contactName: String, message: String): WhatsAppResult {
-        Log.d(TAG, "📱 sendMessage: contact='$contactName'")
+        Log.d(TAG, "?? sendMessage: contact='$contactName'")
         val contacts = ContactManager.searchContacts(context, contactName)
         if (contacts.isEmpty()) {
             return WhatsAppResult.NotFound(contactName)
@@ -63,22 +63,22 @@ object WhatsAppManager {
                 normalized.startsWith("00") -> "+" + normalized.substring(2)
                 normalized.startsWith("0") -> "+91" + normalized.substring(1)
                 normalized.length == 10 -> "+91$normalized"
-                // RECOVERY NOTE: the original had `if (len > 10) "+"+x else "+"+x` —
+                // RECOVERY NOTE: the original had `if (len > 10) "+"+x else "+"+x` �
                 // both branches were identical, collapsed here.
                 else -> "+$normalized"
             }
         }
-        Log.d(TAG, "📞 Number normalized: '$raw' → '$normalized'")
+        Log.d(TAG, "?? Number normalized: '$raw' ? '$normalized'")
         return normalized
     }
 
     fun sendMessageToNumber(context: Context, name: String, number: String, message: String) {
-        Log.d(TAG, "📱 sendMessageToNumber: $name ($number)")
+        Log.d(TAG, "?? sendMessageToNumber: $name ($number)")
         openChatWithMessage(context, number, message)
     }
 
     fun voiceCall(context: Context, contactName: String): WhatsAppResult {
-        Log.d(TAG, "📞 WhatsApp voice call: '$contactName'")
+        Log.d(TAG, "?? WhatsApp voice call: '$contactName'")
         val contacts = ContactManager.searchContacts(context, contactName)
         if (contacts.isEmpty()) {
             return WhatsAppResult.NotFound(contactName)
@@ -95,7 +95,7 @@ object WhatsAppManager {
     }
 
     fun videoCall(context: Context, contactName: String): WhatsAppResult {
-        Log.d(TAG, "📹 WhatsApp video call: '$contactName'")
+        Log.d(TAG, "?? WhatsApp video call: '$contactName'")
         val contacts = ContactManager.searchContacts(context, contactName)
         if (contacts.isEmpty()) {
             return WhatsAppResult.NotFound(contactName)
@@ -113,46 +113,46 @@ object WhatsAppManager {
 
     private fun makeWhatsAppCall(context: Context, number: String, isVideo: Boolean) {
         val normalized = normalizeToE164(number)
-        Log.d(TAG, "📞 WhatsApp ${if (isVideo) "video" else "voice"} call → $normalized")
+        Log.d(TAG, "?? WhatsApp ${if (isVideo) "video" else "voice"} call ? $normalized")
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse("https://api.whatsapp.com/send?phone=$normalized")
         intent.setPackage(WHATSAPP_PKG)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         try {
             context.startActivity(intent)
-            Log.d(TAG, "✅ WhatsApp intent sent")
+            Log.d(TAG, "? WhatsApp intent sent")
             startSmartCallPolling(isVideo, 0, true)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ WhatsApp open failed: ${e.message}")
+            Log.e(TAG, "? WhatsApp open failed: ${e.message}")
         }
     }
 
     private fun openChatWithMessage(context: Context, number: String, message: String) {
         val url = "https://api.whatsapp.com/send?phone=${normalizeToE164(number)}&text=${Uri.encode(message)}"
-        Log.d(TAG, "🔗 Opening WhatsApp: $url")
+        Log.d(TAG, "?? Opening WhatsApp: $url")
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse(url)
         intent.setPackage(WHATSAPP_PKG)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         try {
             context.startActivity(intent)
-            Log.d(TAG, "✅ WhatsApp intent sent")
+            Log.d(TAG, "? WhatsApp intent sent")
             startSmartMessagePolling(0, true)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ WhatsApp open failed: ${e.message}")
+            Log.e(TAG, "? WhatsApp open failed: ${e.message}")
         }
     }
 
     private fun startSmartCallPolling(isVideo: Boolean, attemptCount: Int, firstDetection: Boolean) {
         val service = UltronAccessibilityService.getInstance()
         if (service == null) {
-            Log.e(TAG, "❌ AccessibilityService not available")
+            Log.e(TAG, "? AccessibilityService not available")
             return
         }
         if (attemptCount >= MAX_POLL_ATTEMPTS) {
-            Log.e(TAG, "❌ Timeout: WhatsApp screen not ready")
+            Log.e(TAG, "? Timeout: WhatsApp screen not ready")
             Handler(Looper.getMainLooper()).post {
-                WakeWordService.getActiveInstance()
+                VoiceService.getActiveInstance()
                     ?.injectReminderMessage("Boss, WhatsApp kholne mein bahut time lag raha hai.")
             }
             return
@@ -160,7 +160,7 @@ object WhatsAppManager {
         val root = service.rootInActiveWindow
         if (root == null) {
             if (attemptCount % 5 == 0) {
-                Log.d(TAG, "⏳ Waiting for WhatsApp... (${attemptCount * POLL_INTERVAL_MS}ms)")
+                Log.d(TAG, "? Waiting for WhatsApp... (${attemptCount * POLL_INTERVAL_MS}ms)")
             }
             Handler(Looper.getMainLooper()).postDelayed({
                 startSmartCallPolling(isVideo, attemptCount + 1, firstDetection)
@@ -178,7 +178,7 @@ object WhatsAppManager {
         val callButton = findCallButton(root, isVideo)
         if (callButton == null) {
             if (attemptCount % 10 == 0) {
-                Log.d(TAG, "⏳ Looking for call button... (${attemptCount * POLL_INTERVAL_MS}ms)")
+                Log.d(TAG, "? Looking for call button... (${attemptCount * POLL_INTERVAL_MS}ms)")
             }
             root.recycle()
             Handler(Looper.getMainLooper()).postDelayed({
@@ -187,7 +187,7 @@ object WhatsAppManager {
             return
         }
         if (firstDetection) {
-            Log.d(TAG, "✅ Call button detected! Stabilizing for 2500ms...")
+            Log.d(TAG, "? Call button detected! Stabilizing for 2500ms...")
             callButton.recycle()
             root.recycle()
             Handler(Looper.getMainLooper()).postDelayed({
@@ -195,10 +195,10 @@ object WhatsAppManager {
             }, STABILIZATION_DELAY_MS)
             return
         }
-        Log.d(TAG, "✅ Stabilization complete - clicking call button")
+        Log.d(TAG, "? Stabilization complete - clicking call button")
         Log.d(
             TAG,
-            if (callButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)) "✅ Call button clicked!" else "❌ Click failed!"
+            if (callButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)) "? Call button clicked!" else "? Click failed!"
         )
         callButton.recycle()
         root.recycle()
@@ -207,13 +207,13 @@ object WhatsAppManager {
     private fun startSmartMessagePolling(attemptCount: Int, firstDetection: Boolean) {
         val service = UltronAccessibilityService.getInstance()
         if (service == null) {
-            Log.e(TAG, "❌ AccessibilityService not available")
+            Log.e(TAG, "? AccessibilityService not available")
             return
         }
         if (attemptCount >= MAX_POLL_ATTEMPTS) {
-            Log.e(TAG, "❌ Timeout: WhatsApp screen not ready")
+            Log.e(TAG, "? Timeout: WhatsApp screen not ready")
             Handler(Looper.getMainLooper()).post {
-                WakeWordService.getActiveInstance()
+                VoiceService.getActiveInstance()
                     ?.injectReminderMessage("Boss, WhatsApp kholne mein bahut time lag raha hai.")
             }
             return
@@ -221,7 +221,7 @@ object WhatsAppManager {
         val root = service.rootInActiveWindow
         if (root == null) {
             if (attemptCount % 5 == 0) {
-                Log.d(TAG, "⏳ Waiting for WhatsApp... (${attemptCount * POLL_INTERVAL_MS}ms)")
+                Log.d(TAG, "? Waiting for WhatsApp... (${attemptCount * POLL_INTERVAL_MS}ms)")
             }
             Handler(Looper.getMainLooper()).postDelayed({
                 startSmartMessagePolling(attemptCount + 1, firstDetection)
@@ -239,7 +239,7 @@ object WhatsAppManager {
         val sendButton = findSendButton(root)
         if (sendButton == null) {
             if (attemptCount % 10 == 0) {
-                Log.d(TAG, "⏳ Looking for send button... (${attemptCount * POLL_INTERVAL_MS}ms)")
+                Log.d(TAG, "? Looking for send button... (${attemptCount * POLL_INTERVAL_MS}ms)")
             }
             root.recycle()
             Handler(Looper.getMainLooper()).postDelayed({
@@ -248,7 +248,7 @@ object WhatsAppManager {
             return
         }
         if (firstDetection) {
-            Log.d(TAG, "✅ Send button detected! Stabilizing for 2500ms...")
+            Log.d(TAG, "? Send button detected! Stabilizing for 2500ms...")
             sendButton.recycle()
             root.recycle()
             Handler(Looper.getMainLooper()).postDelayed({
@@ -256,10 +256,10 @@ object WhatsAppManager {
             }, STABILIZATION_DELAY_MS)
             return
         }
-        Log.d(TAG, "✅ Stabilization complete - clicking send button")
+        Log.d(TAG, "? Stabilization complete - clicking send button")
         Log.d(
             TAG,
-            if (sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)) "✅ Message sent!" else "❌ Click failed!"
+            if (sendButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)) "? Message sent!" else "? Click failed!"
         )
         sendButton.recycle()
         root.recycle()
@@ -267,11 +267,11 @@ object WhatsAppManager {
 
     private fun findCallButton(root: AccessibilityNodeInfo, isVideo: Boolean): AccessibilityNodeInfo? {
         val descriptions = if (isVideo) {
-            listOf("Video call", "video call", "Video Call", "वीडियो कॉल", "video", "Video")
+            listOf("Video call", "video call", "Video Call", "?????? ???", "video", "Video")
         } else {
             listOf(
                 "Voice call", "voice call", "Voice Call", "Audio call", "audio call",
-                "Call", "call", "वॉयस कॉल", "कॉल"
+                "Call", "call", "???? ???", "???"
             )
         }
         findNodeByDescriptions(root, descriptions)?.let { return it }
@@ -303,7 +303,7 @@ object WhatsAppManager {
             root,
             listOf("com.whatsapp:id/send", "com.whatsapp:id/send_btn", "com.whatsapp:id/send_button")
         )?.let { return it }
-        findByContentDesc(root, listOf("Send", "send", "भेजें", "Send Message"))?.let { return it }
+        findByContentDesc(root, listOf("Send", "send", "?????", "Send Message"))?.let { return it }
         return findSendImageButton(root)
     }
 

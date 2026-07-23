@@ -211,7 +211,7 @@ Device protection and license verification.
 
 | Component | Purpose |
 |-----------|---------|
-| `AccessKeyVerifier` | Validates device license against remote server (`http://89.116.134.248:8000`). Resets app on failure. |
+| `AccessKeyVerifier` | Validates device license against remote server. Resets app on failure. |
 | `AntiTheftManager` | Intruder detection via camera (stores description of unauthorized users). |
 | `UltronDeviceAdminReceiver` | Device admin permission handler (lock screen, wipe capability). |
 
@@ -729,7 +729,7 @@ val mainScope = CoroutineScope(Dispatchers.Main)         // UI updates
 
 **Purpose**: Device verification and anti-piracy
 
-**Endpoint**: `http://89.116.134.248:8000`
+**Endpoint**: Remote License Verification Server
 
 **Flow**:
 1. AccessKeyVerifier on app startup
@@ -866,7 +866,7 @@ AppRoot (Compose Navigation)
 
 ### License Verification
 
-- Remote validation against `http://89.116.134.248:8000`
+- Remote validation against license server
 - App disables on verification failure
 - Hard billing cap required on Google Cloud project
 
@@ -890,7 +890,6 @@ AppRoot (Compose Navigation)
 ./gradlew assembleRelease
 
 # Requires local.properties with API keys:
-# LICENSE_SERVER_URL=http://...
 # OPENWEATHER_DEFAULT_KEY=...
 ```
 

@@ -1,0 +1,161 @@
+=== AUTO TEST LOG ===
+--------- beginning of main
+07-23 19:04:53.730 24230 24316 D WakeWordManager: WakeWord score: 2.9802322E-6
+07-23 19:04:53.795 24230 24316 D WakeWordManager: WakeWord score: 2.2053719E-6
+07-23 19:04:53.888 24230 24297 D WakeWordManager: WakeWord score: 1.9073486E-6
+07-23 19:04:53.957 24230 24316 D WakeWordManager: WakeWord score: 1.66893E-6
+07-23 19:04:54.045 24230 24316 D WakeWordManager: WakeWord score: 1.6987324E-6
+07-23 19:04:54.115 24230 24316 D WakeWordManager: WakeWord score: 2.2649765E-6
+07-23 19:04:54.211 24230 24316 D WakeWordManager: WakeWord score: 5.3048134E-6
+07-23 19:04:54.262 24230 24316 D WakeWordManager: WakeWord score: 1.2516975E-5
+07-23 19:04:54.266 24230 24297 D VadManager: VAD Confidence: 0.0613 (MaxAmp: 0.1610)
+07-23 19:04:54.357 24230 24297 D WakeWordManager: WakeWord score: 2.82228E-5
+07-23 19:04:54.411 24230 24316 D WakeWordManager: WakeWord score: 4.7177076E-5
+07-23 19:04:54.520 24230 24297 D WakeWordManager: WakeWord score: 1.1122227E-4
+07-23 19:04:54.582 24230 24316 D WakeWordManager: WakeWord score: 3.0776858E-4
+07-23 19:04:54.686 24230 24297 D WakeWordManager: WakeWord score: 8.5666776E-4
+07-23 19:04:54.751 24230 24316 D WakeWordManager: WakeWord score: 0.0023840368
+07-23 19:04:54.849 24230 24297 D WakeWordManager: WakeWord score: 0.004610628
+07-23 19:04:54.902 24230 24316 D VadManager: VAD Confidence: 0.0362 (MaxAmp: 0.2153)
+07-23 19:04:54.910 24230 24297 D WakeWordManager: WakeWord score: 0.009395808
+07-23 19:04:55.011 24230 24297 D WakeWordManager: WakeWord score: 0.02159077
+07-23 19:04:55.070 24230 24297 D WakeWordManager: WakeWord score: 0.035698235
+07-23 19:04:55.170 24230 24297 D WakeWordManager: WakeWord score: 0.06202373
+07-23 19:04:55.230 24230 24316 D WakeWordManager: WakeWord score: 0.020362377
+07-23 19:04:55.331 24230 24316 D WakeWordManager: WakeWord score: 0.003555894
+07-23 19:04:55.390 24230 24316 D WakeWordManager: WakeWord score: 0.0010839105
+07-23 19:04:55.490 24230 24316 D WakeWordManager: WakeWord score: 5.399287E-4
+07-23 19:04:55.541 24230 24297 D VadManager: VAD Confidence: 0.3103 (MaxAmp: 0.1159)
+07-23 19:04:55.548 24230 24316 D WakeWordManager: WakeWord score: 4.6220422E-4
+07-23 19:04:55.645 24230 24316 D WakeWordManager: WakeWord score: 4.516542E-4
+07-23 19:04:55.714 24230 24297 D WakeWordManager: WakeWord score: 5.966723E-4
+07-23 19:04:55.809 24230 24316 D WakeWordManager: WakeWord score: 3.4549832E-4
+07-23 19:04:55.867 24230 24297 D WakeWordManager: WakeWord score: 1.5044212E-4
+07-23 19:04:55.961 24230 24297 D WakeWordManager: WakeWord score: 1.1777878E-4
+07-23 19:04:56.032 24230 24316 D WakeWordManager: WakeWord score: 1.0621548E-4
+07-23 19:04:56.118 24230 24297 D WakeWordManager: WakeWord score: 1.0243058E-4
+07-23 19:04:56.177 24230 24316 D VadManager: VAD Confidence: 0.1379 (MaxAmp: 0.1110)
+07-23 19:04:56.186 24230 24297 D WakeWordManager: WakeWord score: 5.6266785E-5
+07-23 19:04:56.270 24230 24316 D WakeWordManager: WakeWord score: 5.4121017E-5
+07-23 19:04:56.340 24230 24297 D WakeWordManager: WakeWord score: 3.9696693E-5
+07-23 19:04:56.452 24230 24316 D WakeWordManager: WakeWord score: 3.710389E-5
+07-23 19:04:56.500 24230 24297 D WakeWordManager: WakeWord score: 4.2140484E-5
+07-23 19:04:56.601 24230 24297 D WakeWordManager: WakeWord score: 7.918477E-5
+07-23 19:04:56.668 24230 24297 D WakeWordManager: WakeWord score: 9.432435E-5
+07-23 19:04:56.772 24230 24316 D WakeWordManager: WakeWord score: 1.5252829E-4
+07-23 19:04:56.815 24230 24316 D VadManager: VAD Confidence: 0.1472 (MaxAmp: 0.1919)
+07-23 19:04:56.823 24230 24297 D WakeWordManager: WakeWord score: 9.0658665E-5
+07-23 19:04:56.926 24230 24316 D WakeWordManager: WakeWord score: 6.464124E-5
+07-23 19:04:56.994 24230 24297 D WakeWordManager: WakeWord score: 2.9534101E-5
+07-23 19:04:57.097 24230 24297 D WakeWordManager: WakeWord score: 3.1262636E-5
+07-23 19:04:57.155 24230 24316 D WakeWordManager: WakeWord score: 3.4481287E-5
+07-23 19:04:57.242 24230 24297 D WakeWordManager: WakeWord score: 6.446242E-5
+07-23 19:04:57.316 24230 24316 D WakeWordManager: WakeWord score: 7.554889E-5
+07-23 19:04:57.408 24230 24297 D WakeWordManager: WakeWord score: 9.906292E-5
+07-23 19:04:57.468 24230 24316 D VadManager: VAD Confidence: 0.4855 (MaxAmp: 0.1731)
+07-23 19:04:57.471 24230 24297 D WakeWordManager: WakeWord score: 1.2245774E-4
+07-23 19:04:57.569 24230 24316 D WakeWordManager: WakeWord score: 1.4859438E-4
+07-23 19:04:57.618 24230 24297 D WakeWordManager: WakeWord score: 1.3720989E-4
+07-23 19:04:57.725 24230 24297 D WakeWordManager: WakeWord score: 1.1396408E-4
+07-23 19:04:57.788 24230 24316 D WakeWordManager: WakeWord score: 8.672476E-5
+07-23 19:04:57.896 24230 24297 D WakeWordManager: WakeWord score: 4.6283007E-5
+07-23 19:04:57.953 24230 24316 D WakeWordManager: WakeWord score: 3.5315752E-5
+07-23 19:04:58.050 24230 24297 D WakeWordManager: WakeWord score: 2.7537346E-5
+07-23 19:04:58.100 24230 24297 D VadManager: VAD Confidence: 0.1043 (MaxAmp: 0.1852)
+07-23 19:04:58.107 24230 24316 D WakeWordManager: WakeWord score: 2.5838614E-5
+07-23 19:04:58.216 24230 24297 D WakeWordManager: WakeWord score: 3.582239E-5
+07-23 19:04:58.267 24230 24316 D WakeWordManager: WakeWord score: 4.503131E-5
+07-23 19:04:58.368 24230 24316 D WakeWordManager: WakeWord score: 1.3622642E-4
+07-23 19:04:58.429 24230 24297 D WakeWordManager: WakeWord score: 2.5299191E-4
+07-23 19:04:58.535 24230 24316 D WakeWordManager: WakeWord score: 4.490316E-4
+07-23 19:04:58.589 24230 24297 D WakeWordManager: WakeWord score: 4.2712688E-4
+07-23 19:04:58.688 24230 24297 D WakeWordManager: WakeWord score: 6.555021E-4
+07-23 19:04:58.741 24230 24297 D VadManager: VAD Confidence: 0.1387 (MaxAmp: 0.1220)
+07-23 19:04:58.746 24230 24316 D WakeWordManager: WakeWord score: 4.5329332E-4
+07-23 19:04:58.848 24230 24297 D WakeWordManager: WakeWord score: 7.6299906E-4
+07-23 19:04:58.913 24230 24316 D WakeWordManager: WakeWord score: 7.238388E-4
+07-23 19:04:59.010 24230 24297 D WakeWordManager: WakeWord score: 7.5134635E-4
+07-23 19:04:59.067 24230 24316 D WakeWordManager: WakeWord score: 1.8909574E-4
+07-23 19:04:59.169 24230 24297 D WakeWordManager: WakeWord score: 1.11579895E-4
+07-23 19:04:59.228 24230 24316 D WakeWordManager: WakeWord score: 9.790063E-5
+07-23 19:04:59.320 24230 24297 D WakeWordManager: WakeWord score: 1.321435E-4
+07-23 19:04:59.379 24230 24297 D VadManager: VAD Confidence: 0.3261 (MaxAmp: 0.1353)
+07-23 19:04:59.390 24230 24316 D WakeWordManager: WakeWord score: 1.9472837E-4
+07-23 19:04:59.487 24230 24297 D WakeWordManager: WakeWord score: 2.3829937E-4
+07-23 19:04:59.546 24230 24316 D WakeWordManager: WakeWord score: 2.2494793E-4
+07-23 19:04:59.646 24230 24316 D WakeWordManager: WakeWord score: 1.3160706E-4
+07-23 19:04:59.720 24230 24297 D WakeWordManager: WakeWord score: 6.887317E-5
+07-23 19:04:59.813 24230 24316 D WakeWordManager: WakeWord score: 3.582239E-5
+07-23 19:04:59.864 24230 24297 D WakeWordManager: WakeWord score: 2.798438E-5
+07-23 19:04:59.965 24230 24316 D WakeWordManager: WakeWord score: 3.2514334E-5
+07-23 19:05:00.024 24230 24316 D VadManager: VAD Confidence: 0.1480 (MaxAmp: 0.1221)
+07-23 19:05:00.039 24230 24297 D WakeWordManager: WakeWord score: 6.0886145E-5
+07-23 19:05:00.127 24230 24316 D WakeWordManager: WakeWord score: 9.047985E-5
+07-23 19:05:00.184 24230 24297 D WakeWordManager: WakeWord score: 1.09136105E-4
+07-23 19:05:00.286 24230 24316 D WakeWordManager: WakeWord score: 5.888939E-5
+07-23 19:05:00.355 24230 24316 D WakeWordManager: WakeWord score: 2.9474497E-5
+07-23 19:05:00.459 24230 24297 D WakeWordManager: WakeWord score: 2.4735928E-5
+07-23 19:05:00.508 24230 24316 D WakeWordManager: WakeWord score: 3.1143427E-5
+07-23 19:05:00.601 24230 24297 D WakeWordManager: WakeWord score: 3.1143427E-5
+07-23 19:05:00.664 24230 24297 D VadManager: VAD Confidence: 0.0733 (MaxAmp: 0.1896)
+07-23 19:05:00.668 24230 24316 D WakeWordManager: WakeWord score: 2.4914742E-5
+07-23 19:05:00.773 24230 24297 D WakeWordManager: WakeWord score: 2.092123E-5
+07-23 19:05:00.828 24230 24316 D WakeWordManager: WakeWord score: 8.761883E-6
+07-23 19:05:00.924 24230 24316 D WakeWordManager: WakeWord score: 5.751848E-6
+07-23 19:05:00.981 24230 24297 D WakeWordManager: WakeWord score: 4.887581E-6
+07-23 19:05:01.087 24230 24316 D WakeWordManager: WakeWord score: 4.9471855E-6
+07-23 19:05:01.145 24230 24297 D WakeWordManager: WakeWord score: 3.7550926E-6
+07-23 19:05:01.246 24230 24316 D WakeWordManager: WakeWord score: 4.3809414E-6
+07-23 19:05:01.303 24230 24316 D VadManager: VAD Confidence: 0.0734 (MaxAmp: 0.3056)
+07-23 19:05:01.310 24230 24297 D WakeWordManager: WakeWord score: 4.976988E-6
+07-23 19:05:01.408 24230 24316 D WakeWordManager: WakeWord score: 2.476573E-5
+07-23 19:05:01.474 24230 24297 D WakeWordManager: WakeWord score: 3.0633807E-4
+07-23 19:05:01.568 24230 24316 D WakeWordManager: WakeWord score: 0.0053390265
+07-23 19:05:01.625 24230 24297 D WakeWordManager: WakeWord score: 0.064540744
+07-23 19:05:01.719 24230 24316 D WakeWordManager: WakeWord score: 0.26872024
+07-23 19:05:01.720 24230 24316 D WakeWordManager: wake word detected
+07-23 19:05:01.720 24230 24316 D WakeWordManager: ⚡ [WAKE WORD DETECTED!] Confidence: 0.269, Model: hey_jarvis.onnx
+07-23 19:05:01.720 24230 24316 D WakeWordManager: 🔄 [WAKE STATE TRANSITION] Idle ⬇ WakeDetected
+07-23 19:05:01.721 24230 24297 D SpeakerVerificationManager: ⚡ Wake word detected event received. Starting speaker verification...
+07-23 19:05:01.721 24230 24297 D SpeakerVerificationManager: ⚡ No owner profile enrolled — auto-verifying speaker
+07-23 19:05:01.722 24230 24298 D WakeWordManager: ⏳ WakeWord Cooldown started (2000ms)
+07-23 19:05:01.723 24230 24297 D SpeakerVerificationManager: 🔄 [SPEAKER TRANSITION] NotEnrolled ⬇ Verified
+07-23 19:05:01.723 24230 24297 D VoiceSessionManager: ⚡ Owner Verified! Creating new Voice Session...
+07-23 19:05:01.723 24230 24298 D WakeWordManager: 🔄 [WAKE STATE TRANSITION] WakeDetected ⬇ Cooldown
+07-23 19:05:01.724 24230 24297 D VoiceSessionManager: 🟢 [SESSION CREATED] SessionID: 8b147642
+07-23 19:05:01.724 24230 24297 D VoiceSessionManager: 🔄 [SESSION TRANSITION] Idle ⬇ Starting
+07-23 19:05:01.724 24230 24297 D VoiceSessionManager: 📢 [SESSION EVENT] SessionStarted
+07-23 19:05:01.724 24230 24317 D ConversationEngine: ⚡ SessionStarted event received (SessionID: 8b147642). Connecting provider...
+07-23 19:05:01.724 24230 24317 D GeminiLiveProvider: 🔄 [GEMINI STATE] Disconnected ⬇ Connecting
+07-23 19:05:01.728 24230 24297 D VoiceSessionManager: 🔄 [SESSION TRANSITION] Starting ⬇ WaitingForUser
+07-23 19:05:01.728 24230 24297 D VoiceSessionManager: 📢 [SESSION EVENT] SessionReady
+07-23 19:05:01.735 24230 24230 D AssistantOverlayManager: ✨ [ASSISTANT UI ACTIVATED] Edge Lighting & Overlay shown
+07-23 19:05:01.934 24230 24317 D VadManager: VAD Confidence: 0.1560 (MaxAmp: 0.2017)
+07-23 19:05:02.106 24230 24343 D GeminiLiveProvider: ✅ WebSocket open
+07-23 19:05:02.107 24230 24343 D GeminiLiveProvider: ✅ Setup sent
+07-23 19:05:02.389 24230 24343 D GeminiLiveProvider: 🔄 [GEMINI STATE] Connecting ⬇ Connected
+07-23 19:05:02.582 24230 24316 D VadManager: VAD Confidence: 0.4103 (MaxAmp: 0.1749)
+07-23 19:05:02.661 24230 24316 D VadManager: State Transition: IDLE ➔ SpeechStarted (Confidence: 0.65)
+07-23 19:05:02.661 24230 24316 D VadManager: 🔄 [VAD TRANSITION] Idle ⬇ SpeechStarted
+07-23 19:05:02.662 24230 24316 D VadManager: 🔄 [VAD TRANSITION] SpeechStarted ⬇ Speaking
+07-23 19:05:03.214 24230 24317 D VadManager: VAD Confidence: 0.0289 (MaxAmp: 0.1469)
+07-23 19:05:03.730 24230 24317 D WakeWordManager: ✅ WakeWord Cooldown ended
+07-23 19:05:03.731 24230 24317 D WakeWordManager: 🔄 [WAKE STATE TRANSITION] Cooldown ⬇ Listening
+07-23 19:05:03.865 24230 24317 D VadManager: VAD Confidence: 0.4539 (MaxAmp: 0.1100)
+07-23 19:05:04.503 24230 24317 D VadManager: VAD Confidence: 0.1423 (MaxAmp: 0.1238)
+07-23 19:05:05.142 24230 24317 D VadManager: VAD Confidence: 0.0372 (MaxAmp: 0.1130)
+07-23 19:05:05.780 24230 24317 D VadManager: VAD Confidence: 0.2892 (MaxAmp: 0.1100)
+07-23 19:05:06.422 24230 24317 D VadManager: VAD Confidence: 0.4072 (MaxAmp: 0.1108)
+07-23 19:05:07.063 24230 24317 D VadManager: VAD Confidence: 0.1959 (MaxAmp: 0.1321)
+07-23 19:05:07.539 24230 24317 D VadManager: State Transition: Speaking ➔ SpeechEnded (Silence: 1216ms)
+07-23 19:05:07.540 24230 24317 D VadManager: 🔄 [VAD TRANSITION] Speaking ⬇ SpeechEnded
+07-23 19:05:07.541 24230 24317 D VadManager: 🔄 [VAD TRANSITION] SpeechEnded ⬇ Idle
+07-23 19:05:07.541 24230 24316 D WakeWordManager: 💤 VAD silent ➔ WakeWordManager entering IDLE (buffers preserved)
+07-23 19:05:07.542 24230 24316 D WakeWordManager: 🔄 [WAKE STATE TRANSITION] Listening ⬇ Idle
+07-23 19:05:07.702 24230 24316 D VadManager: VAD Confidence: 0.1090 (MaxAmp: 0.1720)
+07-23 19:05:08.338 24230 24316 D VadManager: VAD Confidence: 0.3925 (MaxAmp: 0.1438)
+07-23 19:05:08.981 24230 24316 D VadManager: VAD Confidence: 0.4589 (MaxAmp: 0.1406)
+07-23 19:05:09.609 24230 24317 D VadManager: VAD Confidence: 0.0803 (MaxAmp: 0.2119)
+07-23 19:05:10.259 24230 24316 D VadManager: VAD Confidence: 0.3813 (MaxAmp: 0.0971)
+07-23 19:05:10.901 24230 24317 D VadManager: VAD Confidence: 0.3679 (MaxAmp: 0.1365)
+07-23 19:05:11.538 24230 24317 D VadManager: VAD Confidence: 0.0630 (MaxAmp: 0.1504)

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
@@ -20,7 +21,6 @@ import com.flexfly.ultron.data.AppPreferences
 import com.flexfly.ultron.data.DatabaseHelper
 import com.flexfly.ultron.model.Message
 import com.flexfly.ultron.service.UltronNotificationListener
-import com.flexfly.ultron.service.WakeWordService
 import com.flexfly.ultron.ui.AppRoot
 import com.flexfly.ultron.ui.theme.UltronTheme
 
@@ -28,7 +28,7 @@ import com.flexfly.ultron.ui.theme.UltronTheme
  * Host activity for the Ultron assistant.
  *
  * Recovered from `MainActivity.kt`. Drives a 14-step runtime permission chain
- * ([nextPermStep]) that gates starting the foreground [WakeWordService], plus the
+ * ([nextPermStep]) that gates starting the foreground service, plus the
  * Compose UI root ([AppRoot]). The permission SEQUENCE and every permission string
  * are preserved exactly from the original.
  */
@@ -269,14 +269,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun autoStartServiceIfNeeded() {
-        if (prefs.isServiceEnabled) {
-            startWakeWord()
-        }
+        Log.d("MainActivity", "Auto-starting VoiceService for debugging")
+        startWakeWord()
     }
 
     private fun handleStartStop() {
         if (isRunningState.value) {
-            stopService(Intent(this, WakeWordService::class.java))
+            stopSelectedRuntime()
             isRunningState.value = false
             prefs.isServiceEnabled = false
         } else {
@@ -293,10 +292,17 @@ class MainActivity : ComponentActivity() {
         ContextCompat.checkSelfPermission(this, "android.permission.RECORD_AUDIO") == 0 &&
             Settings.canDrawOverlays(this)
 
+    /**
+     * Starts the production voice runtime VoiceService.
+     */
     private fun startWakeWord() {
-        startForegroundService(Intent(this, WakeWordService::class.java))
+        com.flexfly.ultron.voice.VoiceService.startService(this)
         isRunningState.value = true
         prefs.isServiceEnabled = true
+    }
+
+    private fun stopSelectedRuntime() {
+        com.flexfly.ultron.voice.VoiceService.stopService(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

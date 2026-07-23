@@ -1,4 +1,4 @@
-﻿package com.flexfly.ultron.security
+package com.flexfly.ultron.security
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -17,7 +17,7 @@ import android.os.PowerManager
 import android.util.Log
 import com.flexfly.ultron.data.AppPreferences
 import com.flexfly.ultron.ai.CameraVisionManager
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 import kotlin.math.sqrt
 
 object AntiTheftManager : SensorEventListener {
@@ -42,9 +42,9 @@ object AntiTheftManager : SensorEventListener {
     private val unlockReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "android.intent.action.USER_PRESENT") {
-                Log.d(TAG, "🔓 User present (phone unlocked) — disabling touch guard")
+                Log.d(TAG, "?? User present (phone unlocked) � disabling touch guard")
                 disable()
-                WakeWordService.getActiveInstance()
+                VoiceService.getActiveInstance()
                     ?.injectReminderMessage("Phone unlock ho gaya Boss! Touch guard off kar diya.")
             }
         }
@@ -78,7 +78,7 @@ object AntiTheftManager : SensorEventListener {
             )
             wakeLock.acquire()
             cpuWakeLock = wakeLock
-            Log.d(TAG, "🔒 CPU Partial WakeLock acquired")
+            Log.d(TAG, "?? CPU Partial WakeLock acquired")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to acquire CPU wake lock: ${e.message}")
         }
@@ -87,7 +87,7 @@ object AntiTheftManager : SensorEventListener {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to register unlock receiver: ${e.message}")
         }
-        Log.d(TAG, "🛡️ Touch guard enabled")
+        Log.d(TAG, "??? Touch guard enabled")
         return "Touch guard active kar diya hai Boss! Phone ab safe hai."
     }
 
@@ -108,7 +108,7 @@ object AntiTheftManager : SensorEventListener {
                 wakeLock.release()
             }
             cpuWakeLock = null
-            Log.d(TAG, "🔓 CPU Partial WakeLock released")
+            Log.d(TAG, "?? CPU Partial WakeLock released")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to release CPU wake lock: ${e.message}")
         }
@@ -116,7 +116,7 @@ object AntiTheftManager : SensorEventListener {
         accelerometer = null
         isRegistered = false
         stopAlarm()
-        Log.d(TAG, "🛡️ Touch guard disabled")
+        Log.d(TAG, "??? Touch guard disabled")
         return "Touch guard off kar diya Boss!"
     }
 
@@ -152,7 +152,7 @@ object AntiTheftManager : SensorEventListener {
     }
 
     private fun triggerAlarm() {
-        Log.d(TAG, "🚨 MOTION DETECTED! Triggering alarm.")
+        Log.d(TAG, "?? MOTION DETECTED! Triggering alarm.")
         isAlarmTriggered = true
         val context = applicationContext ?: return
         try {
@@ -164,7 +164,7 @@ object AntiTheftManager : SensorEventListener {
                     PowerManager.ON_AFTER_RELEASE,
                 "Ultron:AntiTheftWakeLock"
             ).acquire(8000L)
-            Log.d(TAG, "💡 Screen woken up")
+            Log.d(TAG, "?? Screen woken up")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to wake up screen: ${e.message}")
         }
@@ -172,7 +172,7 @@ object AntiTheftManager : SensorEventListener {
             val audioManager = context.getSystemService("audio") as AudioManager
             val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
             audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVolume, 0)
-            Log.d(TAG, "🔊 Alarm volume set to MAX ($maxVolume)")
+            Log.d(TAG, "?? Alarm volume set to MAX ($maxVolume)")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to set alarm volume: ${e.message}")
         }
@@ -186,11 +186,11 @@ object AntiTheftManager : SensorEventListener {
             player.prepare()
             player.start()
             mediaPlayer = player
-            Log.d(TAG, "🎵 Looping alarm started")
+            Log.d(TAG, "?? Looping alarm started")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to play alarm media player: ${e.message}")
         }
-        WakeWordService.getActiveInstance()
+        VoiceService.getActiveInstance()
             ?.injectReminderMessage("Alert! Mera phone chhua kisne?! Maine photo le li hai!")
         Handler(Looper.getMainLooper()).postDelayed({
             CameraVisionManager.analyzeScene(
@@ -204,7 +204,7 @@ object AntiTheftManager : SensorEventListener {
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save intruder description: ${e.message}")
                     }
-                    WakeWordService.getActiveInstance()
+                    VoiceService.getActiveInstance()
                         ?.injectReminderMessage("Maine ek photo click ki hai: $description")
                 },
                 { err ->

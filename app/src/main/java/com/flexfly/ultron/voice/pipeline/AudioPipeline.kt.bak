@@ -1,0 +1,357 @@
+package com.flexfly.ultron.voice.pipeline
+
+import android.content.Context
+import android.util.Log
+import com.flexfly.ultron.ai.conversation.ConversationEngine
+import com.flexfly.ultron.ai.conversation.ConversationState
+import com.flexfly.ultron.voice.AudioConfig
+import com.flexfly.ultron.voice.AudioRecorder
+import com.flexfly.ultron.voice.SileroVadDetector
+import com.flexfly.ultron.voice.VadState
+import com.flexfly.ultron.voice.session.VoiceSessionState
+import com.flexfly.ultron.voice.speaker.EcapaTdnnVerifier
+import com.flexfly.ultron.voice.speaker.SpeakerStore
+import com.flexfly.ultron.voice.speaker.VerificationResult
+import com.flexfly.ultron.voice.wakeword.OpenWakeWordDetector
+import com.flexfly.ultron.voice.wakeword.WakeWordState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.UUID
+
+/**
+ * Unified 4-Stage Audio Pipeline.
+ * Ported from the reference diagnostic architecture to eliminate race conditions
+ * and complex event wiring.
+ *
+ * STAGE 0: IDLE
+ * STAGE 1: VOICE_DETECTED
+ * STAGE 2: WAKE_WORD_DETECTED
+ * STAGE 3: GEMINI_ACTIVE
+ */
+class AudioPipeline(
+    private val context: Context,
+    private val conversationEngine: ConversationEngine,
+    private val sessionManager: com.flexfly.ultron.voice.session.VoiceSessionManager
+) {
+    companion object {
+        private const val TAG = "AudioPipeline"
+        private const val MAX_SPEECH_FRAMES = 150 // ~4.8 seconds
+        private const val GEMINI_COOLDOWN = 50 // ~1.6 sec cooldown
+    }
+
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private var pipelineJob: Job? = null
+
+    val config = AudioConfig()
+    private val audioRecorder = AudioRecorder(context, config)
+    private val vadDetector = SileroVadDetector(context)
+    private val wakeWordDetector = OpenWakeWordDetector(context, "hey_jarvis.onnx")
+    private val ecapaModel = EcapaTdnnVerifier(context)
+    private val speakerStore = SpeakerStore(context)
+
+    // Pipeline State Flows (for UI)
+    private val _vadState = MutableStateFlow<VadState>(VadState.Idle)
+    val vadState: StateFlow<VadState> = _vadState.asStateFlow()
+    val vadDebugInfo = MutableStateFlow(com.flexfly.ultron.voice.VadDebugInfo())
+
+    private val _wakeWordState = MutableStateFlow<WakeWordState>(WakeWordState.Idle)
+    val wakeWordState: StateFlow<WakeWordState> = _wakeWordState.asStateFlow()
+    val wakeWordDebugInfo = MutableStateFlow(com.flexfly.ultron.voice.wakeword.WakeWordDebugInfo())
+
+    private val _speakerState = MutableStateFlow<VerificationResult>(VerificationResult.Ready)
+    val speakerState: StateFlow<VerificationResult> = _speakerState.asStateFlow()
+    val speakerDebugInfo = MutableStateFlow(com.flexfly.ultron.voice.speaker.SpeakerDebugInfo())
+
+    val sessionState: StateFlow<VoiceSessionState> = sessionManager.sessionState
+
+    private enum class Stage {
+        IDLE,
+        VOICE_DETECTED,
+        WAKE_WORD_DETECTED,
+        GEMINI_ACTIVE
+    }
+
+    @Volatile private var stage = Stage.IDLE
+    
+    private val speechFrames = mutableListOf<FloatArray>()
+    private val speechFramesLock = Any()
+    
+    private val recentFrames = java.util.LinkedList<FloatArray>()
+    private val recentFramesLock = Any()
+
+    private var totalFrameCount = 0
+    private var lastVadState: VadState = VadState.Idle
+    private var geminiCooldownFrames = 0
+    
+    // Buffer for Wake Word processing (requires 1280 samples per chunk)
+    private var wwPcmBuffer = FloatArray(0)
+    private val wwChunkSize = 1280
+    private var latestWakeProb = 0.0f
+    
+    private var currentSessionId: String? = null
+
+    fun start() {
+        if (pipelineJob?.isActive == true) return
+        Log.d(TAG, "🚀 Starting Audio Pipeline (Unified State Machine)")
+
+        try {
+            audioRecorder.startStreaming()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start AudioRecorder: ${e.message}", e)
+            return
+        }
+
+        stage = Stage.IDLE
+        sessionManager._sessionState.value = VoiceSessionState.Idle
+
+        pipelineJob = scope.launch {
+            audioRecorder.startStreaming().collect { frame ->
+                processPipelineFrame(frame)
+            }
+        }
+    }
+
+    private fun processPipelineFrame(frame: FloatArray) {
+        totalFrameCount++
+
+        synchronized(recentFramesLock) {
+            recentFrames.addLast(frame)
+            if (recentFrames.size > 60) {
+                recentFrames.removeFirst()
+            }
+        }
+
+        if (geminiCooldownFrames > 0) geminiCooldownFrames--
+
+        if (stage == Stage.GEMINI_ACTIVE) {
+            val vadProb = vadDetector.processFrame(frame)
+            scope.launch { conversationEngine.sendAudioChunk(frame) }
+
+            val isSpeech = vadProb >= config.speechThreshold
+            val isSilence = vadProb <= config.silenceThreshold
+
+            if (isSilence && lastVadState is VadState.Speaking) {
+                if (geminiCooldownFrames == 0) {
+                    geminiCooldownFrames = 15 // Wait ~500ms of silence
+                }
+                if (geminiCooldownFrames == 1) {
+                    Log.d(TAG, "[Pipeline] Speech ended in GEMINI_ACTIVE. Disconnecting.")
+                    stage = Stage.IDLE
+                    geminiCooldownFrames = GEMINI_COOLDOWN
+                    synchronized(speechFramesLock) { speechFrames.clear() }
+                    
+                    // Disconnect Gemini when speech ends
+                    currentSessionId?.let { id ->
+                        sessionManager._sessionState.value = VoiceSessionState.Ending(id, "SpeechEnded")
+                    }
+                    scope.launch { conversationEngine.provider.disconnect() }
+                    sessionManager._sessionState.value = VoiceSessionState.Idle
+                    lastVadState = VadState.Idle
+                }
+            } else if (isSpeech) {
+                geminiCooldownFrames = 0
+                lastVadState = VadState.Speaking
+            }
+            return
+        }
+
+        // STAGES 0-2
+        val vadProb = vadDetector.processFrame(frame)
+        
+        // Append PCM and process WakeWord in 1280 chunks (un-normalized floats expected by openWakeWord)
+        val newBuffer = FloatArray(wwPcmBuffer.size + frame.size)
+        System.arraycopy(wwPcmBuffer, 0, newBuffer, 0, wwPcmBuffer.size)
+        for (i in frame.indices) {
+            newBuffer[wwPcmBuffer.size + i] = frame[i] * 32767.0f
+        }
+        wwPcmBuffer = newBuffer
+        
+        while (wwPcmBuffer.size >= wwChunkSize) {
+            val chunk = FloatArray(wwChunkSize)
+            System.arraycopy(wwPcmBuffer, 0, chunk, 0, wwChunkSize)
+            
+            val newWwBuffer = FloatArray(wwPcmBuffer.size - wwChunkSize)
+            System.arraycopy(wwPcmBuffer, wwChunkSize, newWwBuffer, 0, newWwBuffer.size)
+            wwPcmBuffer = newWwBuffer
+            
+            val score = wakeWordDetector.processWindow(chunk)
+            if (score > latestWakeProb) {
+                latestWakeProb = score
+            }
+        }
+        
+        // Gradually decay wakeProb so it doesn't stay high forever
+        if (latestWakeProb > 0.01f) {
+            latestWakeProb *= 0.95f
+        }
+
+        val isSpeech = vadProb >= config.speechThreshold
+        
+        if (totalFrameCount % 50 == 1) {
+            val rms = kotlin.math.sqrt(frame.map { it * it }.average()).toFloat()
+            Log.d(TAG, "PCM frame #$totalFrameCount: RMS=${"%.4f".format(rms)}, VAD prob=${"%.4f".format(vadProb)}, WakeProb=${"%.4f".format(latestWakeProb)}")
+        }
+
+        if (isSpeech) {
+            geminiCooldownFrames = 0
+            if (lastVadState !is VadState.Speaking) {
+                Log.d(TAG, "[Pipeline] SpeechStarted — Stage: $stage")
+            }
+            lastVadState = VadState.Speaking
+            _vadState.value = VadState.Speaking
+        } else if (vadProb <= config.silenceThreshold && lastVadState is VadState.Speaking) {
+            if (geminiCooldownFrames == 0) {
+                geminiCooldownFrames = 15
+            }
+            if (geminiCooldownFrames == 1) {
+                Log.d(TAG, "[Pipeline] SpeechEnded  — Stage: $stage")
+                if (stage == Stage.VOICE_DETECTED) {
+                    Log.d(TAG, "[Pipeline] No wake word detected. Resetting to IDLE.")
+                    stage = Stage.IDLE
+                    synchronized(speechFramesLock) { speechFrames.clear() }
+                }
+                lastVadState = VadState.Idle
+                _vadState.value = VadState.Idle
+            }
+        }
+
+        if (totalFrameCount % 5 == 0) {
+            // Log.d(TAG, "[Pipeline] WakeWord score: ${"%.3f".format(wakeProb)}")
+        }
+
+        when (stage) {
+            Stage.IDLE -> {
+                if (geminiCooldownFrames > 0) return
+                
+                if (latestWakeProb >= 0.5f) {
+                    Log.i(TAG, "[Pipeline] STAGE 0 → 2: Wake word detected directly! Score=${"%.3f".format(latestWakeProb)}")
+                    stage = Stage.WAKE_WORD_DETECTED
+                    runEcapaVerification()
+                } else if (vadProb > config.speechThreshold) {
+                    Log.d(TAG, "[Pipeline] STAGE 0 → 1: Voice detected (prob=${"%.2f".format(vadProb)})")
+                    stage = Stage.VOICE_DETECTED
+                    synchronized(speechFramesLock) { speechFrames.clear() }
+                }
+            }
+            Stage.VOICE_DETECTED -> {
+                synchronized(speechFramesLock) {
+                    if (speechFrames.size < MAX_SPEECH_FRAMES) speechFrames.add(frame)
+                }
+                if (latestWakeProb >= 0.5f) {
+                    Log.i(TAG, "[Pipeline] STAGE 1 → 2: Wake word detected during speech! Score=${"%.3f".format(latestWakeProb)}")
+                    stage = Stage.WAKE_WORD_DETECTED
+                    runEcapaVerification()
+                }
+            }
+            Stage.WAKE_WORD_DETECTED -> {
+                synchronized(speechFramesLock) {
+                    if (speechFrames.size < MAX_SPEECH_FRAMES) speechFrames.add(frame)
+                }
+            }
+            else -> {}
+        }
+    }
+
+    private fun runEcapaVerification() {
+        scope.launch {
+            _wakeWordState.value = WakeWordState.WakeDetected(1.0f, System.currentTimeMillis())
+            
+            val framesCopy: List<FloatArray>
+            synchronized(speechFramesLock) { framesCopy = ArrayList(speechFrames) }
+            val finalFrames = if (framesCopy.size < 20) {
+                synchronized(recentFramesLock) { ArrayList(recentFrames) }
+            } else {
+                framesCopy
+            }
+
+            if (!speakerStore.hasOwnerProfile()) {
+                Log.w(TAG, "[Pipeline] No voice enrolled — bypassing speaker check, starting Gemini.")
+                activateGemini(null)
+                return@launch
+            }
+
+            Log.d(TAG, "[Pipeline] Running ECAPA speaker verification...")
+            val result = withContext(Dispatchers.Default) {
+                // EcapaTdnnModel expects single contiguous FloatArray
+                val flattened = FloatArray(finalFrames.size * config.frameSizeSamples)
+                var offset = 0
+                for (f in finalFrames) {
+                    System.arraycopy(f, 0, flattened, offset, f.size)
+                    offset += f.size
+                }
+                val embedding = ecapaModel.extractEmbedding(flattened).vector
+                if (embedding != null) {
+                    val enrolledEmbedding = speakerStore.getOwnerProfile()
+                    if (enrolledEmbedding != null) {
+                        val enrolled = enrolledEmbedding.vector
+                        val sim = calculateCosineSimilarity(embedding, enrolled)
+                        if (sim >= 0.65f) VerificationResult.Verified(sim) else VerificationResult.Rejected(sim)
+                    } else VerificationResult.NotEnrolled
+                } else VerificationResult.Error("Failed to extract embedding")
+            }
+
+            _speakerState.value = result
+
+            if (result is VerificationResult.Verified) {
+                Log.d(TAG, "[Pipeline] STAGE 2 → 3: Speaker verified! Activating Gemini.")
+                activateGemini(result.similarity)
+            } else {
+                Log.w(TAG, "[Pipeline] Speaker NOT verified. Rejecting. Back to IDLE.")
+                stage = Stage.IDLE
+                geminiCooldownFrames = 30
+                synchronized(speechFramesLock) { speechFrames.clear() }
+            }
+        }
+    }
+
+    private fun activateGemini(similarity: Float?) {
+        stage = Stage.GEMINI_ACTIVE
+        Log.d(TAG, "[Pipeline] STAGE 3: Gemini ACTIVE. Streaming audio...")
+        
+        val newId = UUID.randomUUID().toString().take(8)
+        currentSessionId = newId
+        sessionManager._sessionState.value = VoiceSessionState.Listening(newId)
+        
+        scope.launch {
+            conversationEngine.provider.connect(newId)
+        }
+    }
+
+    private fun calculateCosineSimilarity(a: FloatArray, b: FloatArray): Float {
+        if (a.size != b.size) return 0f
+        var dotProduct = 0.0
+        var normA = 0.0
+        var normB = 0.0
+        for (i in a.indices) {
+            dotProduct += a[i] * b[i]
+            normA += a[i] * a[i]
+            normB += b[i] * b[i]
+        }
+        if (normA == 0.0 || normB == 0.0) return 0f
+        return (dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))).toFloat()
+    }
+
+    fun stop() {
+        Log.d(TAG, "🛑 Stopping AudioPipeline")
+        pipelineJob?.cancel()
+        pipelineJob = null
+        stage = Stage.IDLE
+        audioRecorder.stop()
+        scope.launch { conversationEngine.provider.disconnect() }
+        sessionManager._sessionState.value = VoiceSessionState.Idle
+    }
+
+    fun release() {
+        stop()
+        vadDetector.close()
+        wakeWordDetector.close()
+        ecapaModel.close()
+    }
+}

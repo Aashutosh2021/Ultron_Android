@@ -49,7 +49,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flexfly.ultron.data.AppPreferences
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 import com.flexfly.ultron.i18n.INDIAN_LANGUAGES
 import com.flexfly.ultron.model.LanguageInfo
 import com.flexfly.ultron.ui.theme.CardBg
@@ -163,7 +163,7 @@ fun SettingsScreen(prefs: AppPreferences) {
                                         language = lang.name
                                         prefs.language = lang.name
                                         isLanguageExpanded = false
-                                        WakeWordService.getActiveInstance()?.injectReminderMessage(
+                                        VoiceService.getActiveInstance()?.injectReminderMessage(
                                             "[SYSTEM] The user just changed your language to ${lang.name}. From now on, you MUST speak STRICTLY in ${lang.name}."
                                         )
                                     }

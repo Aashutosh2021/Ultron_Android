@@ -29,8 +29,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // ── Externalized secrets (recovered from decompiled source) ────
-        buildConfigField("String", "LICENSE_SERVER_URL",
-            "\"${secret("LICENSE_SERVER_URL", "http://89.116.134.248:8000")}\"")
+        buildConfigField("String", "OPENWEATHER_DEFAULT_KEY",
+            "\"${secret("OPENWEATHER_DEFAULT_KEY", "")}\"")
+
+        // ── Externalized secrets (recovered from decompiled source) ────
         buildConfigField("String", "OPENWEATHER_DEFAULT_KEY",
             "\"${secret("OPENWEATHER_DEFAULT_KEY", "")}\"")
     }
@@ -110,13 +112,12 @@ dependencies {
     // ── Gemini Live (raw WebSocket) ───────────────────────────────
     implementation(libs.java.websocket)
 
-    // ── Vosk offline wake-word / STT ──────────────────────────────
-    implementation("net.java.dev.jna:jna:5.13.0@aar")
-    implementation("com.alphacephei:vosk-android:0.3.38@aar")
-
     // ── ML Kit on-device translation ──────────────────────────────
     implementation(libs.mlkit.translate)
 
     // ── Google Play services (location) ───────────────────────────
     implementation(libs.play.services.location)
+
+    // ── ONNX Runtime for Silero VAD ───────────────────────────────
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.18.0")
 }

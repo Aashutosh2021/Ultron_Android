@@ -1,4 +1,4 @@
-﻿package com.flexfly.ultron.apps
+package com.flexfly.ultron.apps
 
 import android.content.Context
 import android.content.Intent
@@ -11,7 +11,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.flexfly.ultron.automation.UltronAccessibilityService
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 import java.util.Locale
 
 /**
@@ -20,7 +20,7 @@ import java.util.Locale
  * controls (play/pause/next/previous).
  *
  * Recovered from `SpotifyManager.kt`. The multi-stage automation is a chain of
- * [Handler]-based polling loops ([startFilterPolling] → [startSongRowPolling] →
+ * [Handler]-based polling loops ([startFilterPolling] ? [startSongRowPolling] ?
  * [startPlayButtonPolling]); [delay] wraps `postDelayed` with the [POLL_INTERVAL_MS]
  * cadence.
  *
@@ -29,7 +29,7 @@ import java.util.Locale
  * [findNodeByDescriptions] and [findFilterTabByTraversal] were emitted with jadx's
  * boolean-flag inference broken ("Multi-variable type inference failed"); both are
  * reconstructed here from their clear intent (match desc/text against the target list,
- * then click the node or its nearest clickable ancestor when visible) — matching the
+ * then click the node or its nearest clickable ancestor when visible) � matching the
  * structurally-intact `findFilterTab` path.
  */
 object SpotifyManager {
@@ -42,7 +42,7 @@ object SpotifyManager {
     private const val FILTER_CLICK_DELAY_MS = 1500L
 
     fun playSong(context: Context, songName: String) {
-        Log.d(TAG, "🎵 playSong: '$songName'")
+        Log.d(TAG, "?? playSong: '$songName'")
         if (!checkAccessibilityService(context)) return
 
         val lower = songName.lowercase(Locale.ROOT)
@@ -51,7 +51,7 @@ object SpotifyManager {
             lower.contains("favorite songs") || lower.contains("favorite gaane") ||
             lower.contains("liked wale gaane")
         ) {
-            Log.d(TAG, "🔄 Intercepted liked songs query: '$songName', redirecting to playLikedSongs")
+            Log.d(TAG, "?? Intercepted liked songs query: '$songName', redirecting to playLikedSongs")
             playLikedSongs(context)
             return
         }
@@ -66,7 +66,7 @@ object SpotifyManager {
         val cleanedName = Regex("(?i)\\b(playlist|list|artist|singer|singers|album)\\b")
             .replace(songName, "").trim()
         if (tryDeepLinkSearch(context, cleanedName)) {
-            Log.d(TAG, "✅ Deep link launched — waiting for search results with filter $filter...")
+            Log.d(TAG, "? Deep link launched � waiting for search results with filter $filter...")
             startFilterPolling(filter, 0)
         } else {
             openSpotifyAndSearch(context, cleanedName)
@@ -74,7 +74,7 @@ object SpotifyManager {
     }
 
     fun playLikedSongs(context: Context) {
-        Log.d(TAG, "🎵 playLikedSongs")
+        Log.d(TAG, "?? playLikedSongs")
         if (!checkAccessibilityService(context)) return
 
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("spotify:collection:tracks"))
@@ -82,10 +82,10 @@ object SpotifyManager {
         intent.setPackage(SPOTIFY_PACKAGE)
         try {
             context.startActivity(intent)
-            Log.d(TAG, "✅ Liked songs Deep Link launched — waiting for play button...")
+            Log.d(TAG, "? Liked songs Deep Link launched � waiting for play button...")
             startPlayButtonPolling(0)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Liked songs launch failed: ${e.message}")
+            Log.e(TAG, "? Liked songs launch failed: ${e.message}")
             if (tryOpenSpotify(context)) {
                 startPlayButtonPolling(0)
             } else {
@@ -107,7 +107,7 @@ object SpotifyManager {
     private fun startFilterPolling(filterType: String, attemptCount: Int) {
         val service = UltronAccessibilityService.getInstance() ?: return
         if (attemptCount >= MAX_POLL_ATTEMPTS) {
-            Log.e(TAG, "❌ Timeout: $filterType filter tab nahi mila")
+            Log.e(TAG, "? Timeout: $filterType filter tab nahi mila")
             notifyUser("Boss, Spotify mein $filterType filter nahi mila.")
             return
         }
@@ -124,13 +124,13 @@ object SpotifyManager {
         }
         val filterTab = findFilterTab(root, filterType)
         if (filterTab != null) {
-            Log.d(TAG, "✅ '$filterType' filter tab mila! Clicking...")
+            Log.d(TAG, "? '$filterType' filter tab mila! Clicking...")
             Log.d(
                 TAG,
                 if (filterTab.performAction(AccessibilityNodeInfo.ACTION_CLICK))
-                    "✅ $filterType filter clicked!"
+                    "? $filterType filter clicked!"
                 else
-                    "❌ $filterType filter click failed"
+                    "? $filterType filter click failed"
             )
             filterTab.recycle()
             root.recycle()
@@ -145,10 +145,10 @@ object SpotifyManager {
 
     private fun findFilterTab(root: AccessibilityNodeInfo, filterType: String): AccessibilityNodeInfo? {
         val targets = when (filterType) {
-            "Songs" -> listOf("Songs", "Tracks", "गाने", "गीत")
-            "Playlists" -> listOf("Playlists", "प्लेलिस्ट")
-            "Artists" -> listOf("Artists", "कलाकार")
-            "Albums" -> listOf("Albums", "एल्बम")
+            "Songs" -> listOf("Songs", "Tracks", "????", "???")
+            "Playlists" -> listOf("Playlists", "?????????")
+            "Artists" -> listOf("Artists", "??????")
+            "Albums" -> listOf("Albums", "?????")
             else -> listOf(filterType)
         }
         for (target in targets) {
@@ -165,7 +165,7 @@ object SpotifyManager {
                 node.recycle()
             }
         }
-        Log.d(TAG, "🔍 findFilterTab: findAccessibilityNodeInfosByText failed, trying recursive traversal fallback...")
+        Log.d(TAG, "?? findFilterTab: findAccessibilityNodeInfosByText failed, trying recursive traversal fallback...")
         return findFilterTabByTraversal(root, targets)
     }
 
@@ -218,7 +218,7 @@ object SpotifyManager {
     private fun startSongRowPolling(filterType: String, attemptCount: Int) {
         val service = UltronAccessibilityService.getInstance() ?: return
         if (attemptCount >= MAX_POLL_ATTEMPTS) {
-            Log.e(TAG, "❌ Timeout: Row nahi mila")
+            Log.e(TAG, "? Timeout: Row nahi mila")
             notifyUser("Boss, Spotify mein content nahi mila.")
             return
         }
@@ -238,9 +238,9 @@ object SpotifyManager {
             val text = songRow.text?.toString() ?: ""
             val bounds = Rect()
             songRow.getBoundsInScreen(bounds)
-            Log.d(TAG, "🎵 Row mila: '${text.take(40)}' bounds=$bounds")
+            Log.d(TAG, "?? Row mila: '${text.take(40)}' bounds=$bounds")
             val clicked = songRow.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            Log.d(TAG, if (clicked) "✅ Row clicked successfully!" else "❌ Row click failed!")
+            Log.d(TAG, if (clicked) "? Row clicked successfully!" else "? Row click failed!")
             songRow.recycle()
             root.recycle()
             if (!clicked || filterType == "Songs") {
@@ -316,7 +316,7 @@ object SpotifyManager {
                     score -= 2
                 }
                 if (score > 0) {
-                    Log.d(TAG, "🎯 Candidate score=$score: '${text.take(30)}' [${width}x${height}]")
+                    Log.d(TAG, "?? Candidate score=$score: '${text.take(30)}' [${width}x${height}]")
                     list.add(node to score)
                     return
                 }
@@ -355,7 +355,7 @@ object SpotifyManager {
     private fun startPlayButtonPolling(attemptCount: Int) {
         val service = UltronAccessibilityService.getInstance() ?: return
         if (attemptCount >= MAX_POLL_ATTEMPTS) {
-            Log.e(TAG, "❌ Timeout: Play button nahi mila")
+            Log.e(TAG, "? Timeout: Play button nahi mila")
             return
         }
         val root = service.rootInActiveWindow
@@ -371,7 +371,7 @@ object SpotifyManager {
         }
         val playButton = findPlayButton(root)
         if (playButton != null) {
-            Log.d(TAG, "✅ Play button clicked=${playButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)}")
+            Log.d(TAG, "? Play button clicked=${playButton.performAction(AccessibilityNodeInfo.ACTION_CLICK)}")
             playButton.recycle()
             root.recycle()
         } else {
@@ -393,16 +393,16 @@ object SpotifyManager {
             val found = root.findAccessibilityNodeInfosByViewId(id)
                 .firstOrNull { it.isClickable && it.isVisibleToUser }
             if (found != null) {
-                Log.d(TAG, "✅ Play button found by ID: $id")
+                Log.d(TAG, "? Play button found by ID: $id")
                 return found
             }
         }
         val byDesc = findNodeByDescriptions(
             root,
-            listOf("Play", "play", "Pause", "pause", "Shuffle play", "Play playlist", "प्ले", "पॉज़", "शफल")
+            listOf("Play", "play", "Pause", "pause", "Shuffle play", "Play playlist", "????", "????", "???")
         )
         if (byDesc != null) {
-            Log.d(TAG, "✅ Play button found by description")
+            Log.d(TAG, "? Play button found by description")
             return byDesc
         }
         return findPlayButtonByHeuristic(root)
@@ -476,9 +476,9 @@ object SpotifyManager {
             val up = Intent(Intent.ACTION_MEDIA_BUTTON)
             up.putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(KeyEvent.ACTION_UP, keyCode))
             context.sendBroadcast(up)
-            Log.d(TAG, "✅ Media control: $action")
+            Log.d(TAG, "? Media control: $action")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Media control failed: ${e.message}")
+            Log.e(TAG, "? Media control failed: ${e.message}")
         }
     }
 
@@ -490,7 +490,7 @@ object SpotifyManager {
             context.startActivity(intent)
             true
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Deep link failed: ${e.message}")
+            Log.e(TAG, "? Deep link failed: ${e.message}")
             false
         }
     }
@@ -551,7 +551,7 @@ object SpotifyManager {
     }
 
     private fun findSpotifyPlayPause(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        findNodeByDescriptions(root, listOf("Play", "play", "Pause", "pause", "प्ले", "પ્લે"))
+        findNodeByDescriptions(root, listOf("Play", "play", "Pause", "pause", "????", "????"))
             ?.let { return it }
 
         val ids = listOf(
@@ -604,7 +604,7 @@ object SpotifyManager {
 
     private fun notifyUser(message: String) {
         Handler(Looper.getMainLooper()).post {
-            WakeWordService.getActiveInstance()?.injectReminderMessage(message)
+            VoiceService.getActiveInstance()?.injectReminderMessage(message)
         }
     }
 }

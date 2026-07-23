@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
-import com.flexfly.ultron.service.WakeWordService
+import com.flexfly.ultron.voice.VoiceService
 
 /**
  * Broadcast receiver that watches `ACTION_BATTERY_CHANGED` and pushes voice alerts
@@ -99,13 +99,13 @@ class BatteryMonitor private constructor(private val context: Context) : Broadca
 
     private fun alert100Percent() {
         Log.d(TAG, "🔔 Sending 100% alert to Ultron")
-        WakeWordService.getActiveInstance()
+        VoiceService.getActiveInstance()
             ?.injectReminderMessage("Boss, battery 100 percent ho gaya! Charger se nikal do!")
     }
 
     private fun alert20Percent() {
         Log.d(TAG, "🔔 Sending 20% low battery alert to Ultron")
-        WakeWordService.getActiveInstance()
+        VoiceService.getActiveInstance()
             ?.injectReminderMessage("Boss, battery sirf 20 percent reh gaya hai! Charging laga do!")
     }
 
