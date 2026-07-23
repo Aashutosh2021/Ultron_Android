@@ -3,7 +3,6 @@ package com.flexfly.ultron.ai.conversation
 import android.content.Context
 import android.util.Log
 import com.flexfly.ultron.voice.session.VoiceSessionEvent
-import com.flexfly.ultron.voice.session.VoiceSessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,7 +25,7 @@ import kotlinx.coroutines.launch
 class ConversationEngine(
     private val context: Context,
     val config: ConversationConfig = ConversationConfig(),
-    private val sessionManager: VoiceSessionManager,
+    
     private val customProvider: ConversationProvider? = null,
 ) {
     companion object {
@@ -62,10 +61,6 @@ class ConversationEngine(
         }
 
         sessionObservationJob = scope.launch {
-            Log.d(TAG, "🚀 ConversationEngine subscribing to VoiceSessionManager.events")
-            sessionManager.events.collect { sessionEvent ->
-                handleSessionEvent(sessionEvent)
-            }
         }
     }
 

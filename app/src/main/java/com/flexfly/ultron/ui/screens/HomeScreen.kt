@@ -237,7 +237,7 @@ private fun ManualTriggerButton() {
             .clip(CircleShape)
             .background(CardBg)
             .border(1.dp, UltronEmber.copy(alpha = 0.5f), CircleShape)
-            .clickable { com.flexfly.ultron.voice.VoiceService.getActiveInstance()?.triggerManualSession() }
+            .clickable { com.flexfly.ultron.service.WakeWordService.getActiveInstance()?.triggerManualSession() }
             .padding(horizontal = 40.dp, vertical = 15.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

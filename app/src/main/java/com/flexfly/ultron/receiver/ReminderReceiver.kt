@@ -7,7 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 
 class ReminderReceiver : BroadcastReceiver() {
 
@@ -19,14 +19,14 @@ class ReminderReceiver : BroadcastReceiver() {
         Log.d("ReminderReceiver", "? Reminder fired: $message")
         showReminderNotification(context, message)
         val injected = "Boss, aapka reminder hai: $message"
-        val activeInstance = VoiceService.getActiveInstance()
+        val activeInstance = WakeWordService.getActiveInstance()
         if (activeInstance != null && activeInstance.isGeminiActive()) {
             Log.d("ReminderReceiver", "?? Injecting reminder to active session")
-            VoiceService.getActiveInstance()?.injectReminderMessage(injected)
+            WakeWordService.getActiveInstance()?.injectReminderMessage(injected)
             return
         }
         Log.d("ReminderReceiver", "?? Starting one-shot session for reminder")
-        val instance = VoiceService.getActiveInstance()
+        val instance = WakeWordService.getActiveInstance()
         if (instance != null) {
             instance.startReminderSession(injected)
         } else {

@@ -8,7 +8,7 @@ import android.util.Log
 import com.flexfly.ultron.ai.TranslationManager
 import com.flexfly.ultron.data.AppPreferences
 import com.flexfly.ultron.info.WeatherManager
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -129,7 +129,7 @@ object EmergencySOSManager {
                 } catch (ignored: Exception) {
                 }
             }
-            VoiceService.getActiveInstance()?.injectReminderMessage(text)
+            WakeWordService.getActiveInstance()?.injectReminderMessage(text)
         }
     }
 }

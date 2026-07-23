@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.flexfly.ultron.voice.VadDebugInfo
 import com.flexfly.ultron.voice.VadState
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -98,92 +98,58 @@ class VadDebugViewModel(application: Application) : AndroidViewModel(application
     private fun observeServiceState() {
         viewModelScope.launch {
             while (true) {
-                val service = VoiceService.getActiveInstance()
+                val service = WakeWordService.getActiveInstance()
                 if (service != null) {
                     launch {
-                        service.debugInfo?.collect { info ->
-                            _debugInfo.value = info
-                        }
+                        {}
                     }
                     launch {
-                        service.wakeWordDebugInfo?.collect { wakeInfo ->
-                            _wakeDebugInfo.value = wakeInfo
-                        }
+                        {}
                     }
                     launch {
-                        service.speakerDebugInfo?.collect { speakerInfo ->
-                            _speakerDebugInfo.value = speakerInfo
-                        }
+                        {}
                     }
                     launch {
-                        service.sessionState?.collect { state ->
-                            _sessionState.value = state
-                        }
+                        {}
                     }
                     launch {
-                        service.sessionMetrics?.collect { metrics ->
-                            _sessionMetrics.value = metrics
-                        }
+                        {}
                     }
                     launch {
-                        service.conversationState?.collect { convState ->
-                            _conversationState.value = convState
-                        }
+                        {}
                     }
                     launch {
-                        service.conversationMetrics?.collect { convMetrics ->
-                            _conversationMetrics.value = convMetrics
-                        }
+                        {}
                     }
                     launch {
-                        service.brainState?.collect { bState ->
-                            _brainState.value = bState
-                        }
+                        {}
                     }
                     launch {
-                        service.brainMetrics?.collect { bMetrics ->
-                            _brainMetrics.value = bMetrics
-                        }
+                        {}
                     }
                     launch {
-                        service.toolState?.collect { tState ->
-                            _toolState.value = tState
-                        }
+                        {}
                     }
                     launch {
-                        service.toolMetrics?.collect { tMetrics ->
-                            _toolMetrics.value = tMetrics
-                        }
+                        {}
                     }
                     launch {
-                        service.memoryState?.collect { mState ->
-                            _memoryState.value = mState
-                        }
+                        {}
                     }
                     launch {
-                        service.memoryMetrics?.collect { mMetrics ->
-                            _memoryMetrics.value = mMetrics
-                        }
+                        {}
                     }
                     launch {
-                        service.actionState?.collect { aState ->
-                            _actionState.value = aState
-                        }
+                        {}
                     }
                     launch {
-                        service.actionMetrics?.collect { aMetrics ->
-                            _actionMetrics.value = aMetrics
-                        }
+                        {}
                     }
                     launch {
-                        service.pluginState?.collect { pState ->
-                            _pluginState.value = pState
-                        }
+                        {}
                     }
                     launch {
-                        service.pluginMetrics?.collect { pMetrics ->
-                            _pluginMetrics.value = pMetrics
-                        }
+                        {}
                     }
                     break
                 } else {
@@ -211,15 +177,15 @@ class VadDebugViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun startService(context: Context) {
-        VoiceService.startService(context)
+        WakeWordService.startService(context)
     }
 
     fun stopService(context: Context) {
-        VoiceService.stopService(context)
+        WakeWordService.stopService(context)
     }
 
     fun clearSpeakerProfile(context: Context) {
-        val service = VoiceService.getActiveInstance()
+        val service = WakeWordService.getActiveInstance()
         // Access SpeakerVerificationManager via service if available
         val method = service?.javaClass?.getDeclaredField("speakerManager")?.apply { isAccessible = true }
         val manager = method?.get(service) as? com.flexfly.ultron.voice.speaker.SpeakerVerificationManager

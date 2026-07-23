@@ -11,7 +11,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.flexfly.ultron.automation.UltronAccessibilityService
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 import java.util.Locale
 
 /**
@@ -604,7 +604,7 @@ object SpotifyManager {
 
     private fun notifyUser(message: String) {
         Handler(Looper.getMainLooper()).post {
-            VoiceService.getActiveInstance()?.injectReminderMessage(message)
+            WakeWordService.getActiveInstance()?.injectReminderMessage(message)
         }
     }
 }

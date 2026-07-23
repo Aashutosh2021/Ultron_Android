@@ -75,11 +75,13 @@ class SpeakerVerificationManager(
             Log.d(TAG, "⚡ Wake word detected event received. Starting speaker verification...")
             // Verify against the ACTUAL utterance that triggered the wake word, captured by
             // the wake-word stage — not a silent default buffer.
-            val utterance = wakeWordManager.snapshotRecentAudio()
-            if (utterance.isNotEmpty()) {
-                verifyCurrentSpeaker(utterance)
-            } else {
-                verifyCurrentSpeaker()
+            scope.launch {
+                val utterance = wakeWordManager.snapshotRecentAudio()
+                if (utterance.isNotEmpty()) {
+                    verifyCurrentSpeaker(utterance)
+                } else {
+                    verifyCurrentSpeaker()
+                }
             }
         }
     }
@@ -89,17 +91,18 @@ class SpeakerVerificationManager(
         updateState(VerificationResult.Verified(1.0f, System.currentTimeMillis()))
     }
 
-    fun verifyCurrentSpeaker(audioSegment: List<AudioFrame> = emptyList()) {
+    suspend fun verifyCurrentSpeaker(audioSegment: List<AudioFrame> = emptyList()): VerificationResult {
         val ownerProfile = store.getOwnerProfile()
 
         if (ownerProfile == null) {
             // No profile enrolled — auto-approve so voice works without enrollment.
             Log.d(TAG, "⚡ No owner profile enrolled — auto-verifying speaker")
-            updateState(VerificationResult.Verified(1.0f, System.currentTimeMillis()))
-            return
+            val result = VerificationResult.Verified(1.0f, System.currentTimeMillis())
+            updateState(result)
+            return result
         }
 
-        scope.launch {
+        return kotlinx.coroutines.withContext(Dispatchers.Default) {
             updateState(VerificationResult.Verifying)
             val currentEmbedding = verifier.extractEmbedding(audioSegment)
             val inferenceTime = verifier.lastInferenceTimeMs
@@ -112,7 +115,8 @@ class SpeakerVerificationManager(
                 if (done) {
                     updateState(VerificationResult.Ready)
                 }
-                return@launch
+                // Return a special rejected state so the pipeline doesn't wake up during enrollment.
+                return@withContext VerificationResult.Rejected(0f, System.currentTimeMillis())
             }
 
             val similarity = ownerProfile.cosineSimilarity(currentEmbedding)
@@ -130,6 +134,7 @@ class SpeakerVerificationManager(
                     verificationCount = verificationCount,
                     timestamp = timestamp,
                 )
+                result
             } else {
                 Log.w(TAG, "❌ [REJECTED SPEAKER] Cosine Similarity: ${"%.3f".format(similarity)} < ${config.similarityThreshold}")
                 val result = VerificationResult.Rejected(similarity, timestamp)
@@ -141,6 +146,7 @@ class SpeakerVerificationManager(
                     verificationCount = verificationCount,
                     timestamp = timestamp,
                 )
+                result
             }
         }
     }

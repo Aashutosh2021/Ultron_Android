@@ -28,7 +28,6 @@ class WakeWordManager(
     val config: WakeWordConfig = WakeWordConfig(),
     private val vadManager: VadManager,
     private val customDetector: WakeWordDetector? = null,
-    var sessionManager: com.flexfly.ultron.voice.session.VoiceSessionManager? = null,
 ) {
     companion object {
         private const val TAG = "WakeWordManager"
@@ -92,15 +91,9 @@ class WakeWordManager(
      * Accepts an audio frame from [VadManager.audioFrames], buffers raw PCM, 
      * and runs openWakeWord inference on 1280-sample chunks.
      */
-    private fun processAudioFrame(frame: AudioFrame) {
+    fun processAudioFrame(frame: AudioFrame) {
         val currentState = _state.value
         if (currentState is WakeWordState.Cooldown || currentState is WakeWordState.WakeDetected) return
-
-        // CRITICAL GATE: Do not detect wake words if a voice session is already active!
-        val sessionState = sessionManager?.sessionState?.value
-        if (sessionState != null && sessionState !is com.flexfly.ultron.voice.session.VoiceSessionState.Idle && sessionState !is com.flexfly.ultron.voice.session.VoiceSessionState.Ended) {
-            return
-        }
 
         // Convert raw PCM to float (un-normalized) for WakeWord and Speaker stages
         val rawPcmFloats = FloatArray(frame.pcmData.size) { frame.pcmData[it].toFloat() }

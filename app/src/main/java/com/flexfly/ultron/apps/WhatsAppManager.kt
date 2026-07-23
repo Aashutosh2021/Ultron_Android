@@ -9,7 +9,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import com.flexfly.ultron.automation.UltronAccessibilityService
 import com.flexfly.ultron.comms.ContactManager
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 
 /**
  * Drives WhatsApp for sending messages and placing voice/video calls by resolving a
@@ -152,7 +152,7 @@ object WhatsAppManager {
         if (attemptCount >= MAX_POLL_ATTEMPTS) {
             Log.e(TAG, "? Timeout: WhatsApp screen not ready")
             Handler(Looper.getMainLooper()).post {
-                VoiceService.getActiveInstance()
+                WakeWordService.getActiveInstance()
                     ?.injectReminderMessage("Boss, WhatsApp kholne mein bahut time lag raha hai.")
             }
             return
@@ -213,7 +213,7 @@ object WhatsAppManager {
         if (attemptCount >= MAX_POLL_ATTEMPTS) {
             Log.e(TAG, "? Timeout: WhatsApp screen not ready")
             Handler(Looper.getMainLooper()).post {
-                VoiceService.getActiveInstance()
+                WakeWordService.getActiveInstance()
                     ?.injectReminderMessage("Boss, WhatsApp kholne mein bahut time lag raha hai.")
             }
             return

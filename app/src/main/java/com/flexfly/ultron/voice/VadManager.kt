@@ -100,7 +100,7 @@ class VadManager(
         }
     }
 
-    private suspend fun processAudioFrame(frame: AudioFrame) {
+    suspend fun processAudioFrame(frame: AudioFrame) {
         // Publish the raw frame to downstream stages (wake word / speaker) BEFORE state
         // logic — they gate their own processing on VadState, but need the audio itself.
         _audioFrames.tryEmit(frame)

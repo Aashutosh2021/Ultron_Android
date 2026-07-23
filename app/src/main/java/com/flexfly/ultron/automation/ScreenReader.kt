@@ -8,7 +8,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 import com.flexfly.ultron.i18n.HindiTransliterator
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 import java.util.Locale
 
 /**
@@ -300,7 +300,7 @@ Important points only.
                     if (onScreen) {
                         Handler(Looper.getMainLooper()).post {
                             // RECOVERY NOTE: cross-file — WakeWordService companion Compose state.
-                            VoiceService.ghostPointerCoordinates.value = PointF(centerX.toFloat(), centerY.toFloat())
+                            WakeWordService.ghostPointerCoordinates.value = PointF(centerX.toFloat(), centerY.toFloat())
                         }
                     }
                     // RECOVERY NOTE: performAction(16) == ACTION_CLICK
@@ -323,7 +323,7 @@ Important points only.
                                 val pCenterX = pRect.centerX().toFloat()
                                 val pCenterY = pRect.centerY().toFloat()
                                 Handler(Looper.getMainLooper()).post {
-                                    VoiceService.ghostPointerCoordinates.value = PointF(pCenterX, pCenterY)
+                                    WakeWordService.ghostPointerCoordinates.value = PointF(pCenterX, pCenterY)
                                 }
                             }
                             // RECOVERY NOTE: performAction(16) == ACTION_CLICK

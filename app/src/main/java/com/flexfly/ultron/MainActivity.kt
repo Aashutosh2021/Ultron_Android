@@ -293,16 +293,16 @@ class MainActivity : ComponentActivity() {
             Settings.canDrawOverlays(this)
 
     /**
-     * Starts the production voice runtime VoiceService.
+     * Starts the production voice runtime WakeWordService.
      */
     private fun startWakeWord() {
-        com.flexfly.ultron.voice.VoiceService.startService(this)
+        com.flexfly.ultron.service.WakeWordService.startService(this)
         isRunningState.value = true
         prefs.isServiceEnabled = true
     }
 
     private fun stopSelectedRuntime() {
-        com.flexfly.ultron.voice.VoiceService.stopService(this)
+        com.flexfly.ultron.service.WakeWordService.stopService(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

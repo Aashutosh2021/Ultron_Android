@@ -40,7 +40,7 @@ import com.flexfly.ultron.info.WeatherManager
 import com.flexfly.ultron.receiver.UltronDeviceAdminReceiver
 import com.flexfly.ultron.reminder.ReminderManager
 import com.flexfly.ultron.security.AntiTheftManager
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -270,7 +270,7 @@ object ToolHandler {
                                     analyzeScreenshot(context, prefs, bitmap, question)
                                 }
                             } else {
-                                VoiceService.getActiveInstance()
+                                WakeWordService.getActiveInstance()
                                     ?.injectReminderMessage("Screenshot nahi le paya Boss!")
                             }
                         }
@@ -316,7 +316,7 @@ object ToolHandler {
                         }
                         Handler(Looper.getMainLooper()).post {
                             val translated = translateResponse(message, userLang)
-                            VoiceService.getActiveInstance()?.injectReminderMessage(translated)
+                            WakeWordService.getActiveInstance()?.injectReminderMessage(translated)
                         }
                     }
                     "Camera control settings mein off hai Boss!"
@@ -343,7 +343,7 @@ object ToolHandler {
                         }
                         Handler(Looper.getMainLooper()).post {
                             val translated = translateResponse(message, userLang)
-                            VoiceService.getActiveInstance()?.injectReminderMessage(translated)
+                            WakeWordService.getActiveInstance()?.injectReminderMessage(translated)
                         }
                     }
                     "Auto typing settings mein off hai Boss!"
@@ -776,7 +776,7 @@ object ToolHandler {
                     "Weather info settings mein off hai Boss!"
                 } else {
                     WeatherManager.getCurrentLocationWeather(context) { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "Weather dekh rahi hoon Boss!"
                 }
@@ -795,10 +795,10 @@ object ToolHandler {
                     CameraVisionManager.analyzeScene(
                         context, question, isSelfie,
                         onResult = { result ->
-                            VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                            WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                         },
                         onError = { err ->
-                            VoiceService.getActiveInstance()
+                            WakeWordService.getActiveInstance()
                                 ?.injectReminderMessage("Camera analysis failed: $err")
                         },
                     )
@@ -962,7 +962,7 @@ object ToolHandler {
                     "YouTube feature settings mein off hai Boss!"
                 } else {
                     YouTubeManager.playOrPauseVideo(context, "pause") { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "YouTube pause kar rahi hoon Boss!"
                 }
@@ -975,7 +975,7 @@ object ToolHandler {
                     "YouTube feature settings mein off hai Boss!"
                 } else {
                     YouTubeManager.playOrPauseVideo(context, "play") { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "YouTube play kar rahi hoon Boss!"
                 }
@@ -987,7 +987,7 @@ object ToolHandler {
                     "YouTube feature settings mein off hai Boss!"
                 } else {
                     YouTubeManager.likeVideo { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "Video like kar rahi hoon Boss!"
                 }
@@ -1000,7 +1000,7 @@ object ToolHandler {
                     "YouTube feature settings mein off hai Boss!"
                 } else {
                     YouTubeManager.subscribeChannel { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "Channel subscribe kar rahi hoon Boss!"
                 }
@@ -1012,7 +1012,7 @@ object ToolHandler {
                     "YouTube feature settings mein off hai Boss!"
                 } else {
                     YouTubeManager.toggleCaptions { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "Captions toggle kar rahi hoon Boss!"
                 }
@@ -1027,7 +1027,7 @@ object ToolHandler {
                     else
                         toolName.substringAfter("youtube:", "").trim()
                     YouTubeManager.searchAndPlay(context, query) { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "YouTube pe dhundh rahi hoon Boss!"
                 }
@@ -1049,7 +1049,7 @@ object ToolHandler {
                         category = "india"
                     }
                     NewsManager.getNews(category, 5, true) { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     }
                     "News fetch kar rahi hoon Boss!"
                 }
@@ -1148,10 +1148,10 @@ object ToolHandler {
                             prefs.googleApiKey,
                             query,
                             onResult = { answer ->
-                                VoiceService.getActiveInstance()?.injectReminderMessage(answer)
+                                WakeWordService.getActiveInstance()?.injectReminderMessage(answer)
                             },
                             onError = { err ->
-                                VoiceService.getActiveInstance()?.injectReminderMessage(err)
+                                WakeWordService.getActiveInstance()?.injectReminderMessage(err)
                             },
                         )
                         "Web pe '$query' dekh rahi hoon Boss!"
@@ -1195,7 +1195,7 @@ object ToolHandler {
     /** Post [message] to the main thread and inject it into the active session. */
     private fun injectOnMain(message: String) {
         Handler(Looper.getMainLooper()).post {
-            VoiceService.getActiveInstance()?.injectReminderMessage(message)
+            WakeWordService.getActiveInstance()?.injectReminderMessage(message)
         }
     }
 
@@ -1222,16 +1222,16 @@ object ToolHandler {
             CameraVisionManager.analyzeBitmap(
                 context, bitmap, question, true,
                 onResult = { result ->
-                    VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                    WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                 },
                 onError = { err ->
-                    VoiceService.getActiveInstance()
+                    WakeWordService.getActiveInstance()
                         ?.injectReminderMessage("Screen analysis failed: $err")
                 },
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error processing screenshot: ${e.message}")
-            VoiceService.getActiveInstance()
+            WakeWordService.getActiveInstance()
                 ?.injectReminderMessage("Screen analysis failed: ${e.message}")
         }
     }
@@ -1256,20 +1256,20 @@ object ToolHandler {
                 CameraVisionManager.analyzeBitmap(
                     context, bitmap, question, false,
                     onResult = { result ->
-                        VoiceService.getActiveInstance()?.injectReminderMessage(result)
+                        WakeWordService.getActiveInstance()?.injectReminderMessage(result)
                     },
                     onError = { err ->
-                        VoiceService.getActiveInstance()
+                        WakeWordService.getActiveInstance()
                             ?.injectReminderMessage("Camera analysis failed: $err")
                     },
                 )
             } else {
-                VoiceService.getActiveInstance()
+                WakeWordService.getActiveInstance()
                     ?.injectReminderMessage("Pichli photo load nahi ho payi Boss!")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error loading last photo: ${e.message}")
-            VoiceService.getActiveInstance()
+            WakeWordService.getActiveInstance()
                 ?.injectReminderMessage("Pichli photo load nahi ho payi Boss!")
         }
     }

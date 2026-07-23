@@ -17,7 +17,7 @@ import android.os.PowerManager
 import android.util.Log
 import com.flexfly.ultron.data.AppPreferences
 import com.flexfly.ultron.ai.CameraVisionManager
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 import kotlin.math.sqrt
 
 object AntiTheftManager : SensorEventListener {
@@ -44,7 +44,7 @@ object AntiTheftManager : SensorEventListener {
             if (intent?.action == "android.intent.action.USER_PRESENT") {
                 Log.d(TAG, "?? User present (phone unlocked) — disabling touch guard")
                 disable()
-                VoiceService.getActiveInstance()
+                WakeWordService.getActiveInstance()
                     ?.injectReminderMessage("Phone unlock ho gaya Boss! Touch guard off kar diya.")
             }
         }
@@ -190,7 +190,7 @@ object AntiTheftManager : SensorEventListener {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to play alarm media player: ${e.message}")
         }
-        VoiceService.getActiveInstance()
+        WakeWordService.getActiveInstance()
             ?.injectReminderMessage("Alert! Mera phone chhua kisne?! Maine photo le li hai!")
         Handler(Looper.getMainLooper()).postDelayed({
             CameraVisionManager.analyzeScene(
@@ -204,7 +204,7 @@ object AntiTheftManager : SensorEventListener {
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save intruder description: ${e.message}")
                     }
-                    VoiceService.getActiveInstance()
+                    WakeWordService.getActiveInstance()
                         ?.injectReminderMessage("Maine ek photo click ki hai: $description")
                 },
                 { err ->

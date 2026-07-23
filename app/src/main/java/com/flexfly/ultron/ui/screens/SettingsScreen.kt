@@ -49,7 +49,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flexfly.ultron.data.AppPreferences
-import com.flexfly.ultron.voice.VoiceService
+import com.flexfly.ultron.service.WakeWordService
 import com.flexfly.ultron.i18n.INDIAN_LANGUAGES
 import com.flexfly.ultron.model.LanguageInfo
 import com.flexfly.ultron.ui.theme.CardBg
@@ -163,7 +163,7 @@ fun SettingsScreen(prefs: AppPreferences) {
                                         language = lang.name
                                         prefs.language = lang.name
                                         isLanguageExpanded = false
-                                        VoiceService.getActiveInstance()?.injectReminderMessage(
+                                        WakeWordService.getActiveInstance()?.injectReminderMessage(
                                             "[SYSTEM] The user just changed your language to ${lang.name}. From now on, you MUST speak STRICTLY in ${lang.name}."
                                         )
                                     }
@@ -198,6 +198,65 @@ fun SettingsScreen(prefs: AppPreferences) {
                     color = HeroCyan.copy(0.65f),
                     fontSize = 11.sp,
                 )
+            }
+        }
+
+        // --- Voice Security ---
+        item {
+            SectionLabel("Voice Security")
+            SettingsCard(HeroPurple) {
+                CardHeader(
+                    "Voice Profile",
+                    "Only enrolled voices can wake up the assistant",
+                    HeroPurple,
+                )
+                
+                val service = WakeWordService.getActiveInstance()
+                var isEnrolled by remember { mutableStateOf(service?.isVoiceEnrolled() ?: false) }
+
+                if (isEnrolled) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(RemoveRed.copy(0.14f), RoundedCornerShape(14.dp))
+                            .border(0.5.dp, RemoveRed.copy(0.3f), RoundedCornerShape(14.dp))
+                            .clickable { 
+                                service?.clearVoiceEnrollment()
+                                isEnrolled = false
+                            }
+                            .padding(vertical = 14.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("🗑", fontSize = 16.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Reset Voice Profile", color = RemoveRed.copy(0.9f), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(HeroPurple.copy(0.14f), RoundedCornerShape(14.dp))
+                            .border(0.5.dp, HeroPurple.copy(0.3f), RoundedCornerShape(14.dp))
+                            .clickable { 
+                                service?.startVoiceEnrollment()
+                            }
+                            .padding(vertical = 14.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("🎙", fontSize = 16.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Enroll Voice", color = HeroPurple.copy(0.9f), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Speak 'Ultron' continuously 3 times to enroll.",
+                        color = HeroPurple.copy(0.65f),
+                        fontSize = 11.sp,
+                    )
+                }
             }
         }
 
