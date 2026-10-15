@@ -159,6 +159,14 @@ class SpeakerVerificationManager(
         )
     }
 
+    fun cancelEnrollment() {
+        enrollmentManager.cancelEnrollment()
+        resetVerificationState()
+        _debugInfo.value = _debugInfo.value.copy(
+            enrollmentProgress = 0,
+        )
+    }
+
     fun clearEnrollment() {
         store.clearOwnerProfile()
         enrollmentManager.cancelEnrollment()

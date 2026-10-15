@@ -120,4 +120,7 @@ dependencies {
 
     // ── ONNX Runtime for Silero VAD ───────────────────────────────
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.18.0")
+
+    // ── SLF4J no-op binding (Vosk/log libs log via SLF4J; no provider → warnings) ──
+    implementation("org.slf4j:slf4j-nop:2.0.13")
 }

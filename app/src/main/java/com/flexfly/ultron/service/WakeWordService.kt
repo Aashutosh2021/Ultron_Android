@@ -146,8 +146,16 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         speakerManager?.startEnrollment()
     }
 
+    fun cancelVoiceEnrollment() {
+        speakerManager?.cancelEnrollment()
+    }
+
     fun clearVoiceEnrollment() {
         speakerManager?.clearEnrollment()
+    }
+
+    fun getSpeakerDebugInfo(): kotlinx.coroutines.flow.StateFlow<com.flexfly.ultron.voice.speaker.SpeakerDebugInfo>? {
+        return speakerManager?.debugInfo
     }
 
     fun injectReminderMessage(message: String) {
@@ -346,7 +354,7 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
                 delay(800L)
                 if (geminiSession == null && !isPipelineListening) {
                     Log.d(TAG, "≡ƒöä Restarting Vosk after call end")
-                    startPipelineListening()
+                    restartPipelineAndVad()
                 }
             }
         }
@@ -829,7 +837,7 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             }
             if (geminiSession == null) {
                 Log.d(TAG, "≡ƒöä Restarting Vosk after session cleanup")
-                startPipelineListening()
+                restartPipelineAndVad()
             }
         }
     }
@@ -839,13 +847,33 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
         isPipelineListening = true
         stage = Stage.IDLE
         Log.d(TAG, "▶ Pipeline listening started")
-        
+
+        wakeWordManager?.stop()
+
         pipelineJob?.cancel()
         pipelineJob = scope.launch {
             vadManager?.audioFrames?.collect { frame ->
                 processPipelineFrame(frame)
             }
         }
+    }
+
+    /**
+     * Restart the wake-word pipeline from a clean mic state. Used at every RESUME point
+     * (after a Gemini session dismissal, a call, or a one-shot announcement). VAD's
+     * AudioRecord is stopped + restarted so it recaptures the mic cleanly after whichever
+     * recorder (geminiAudioRecorder / callAudioManager / notifGeminiSession) just released
+     * it ΓÇö otherwise the pipeline re-collects a starved/degraded AudioRecord and never
+     * detects speech again (the "voice not captured after silence" defect).
+     */
+    private fun restartPipelineAndVad() {
+        if (geminiSession != null || notifSessionActive) {
+            Log.d(TAG, "ΓÜá∩╕Å restartPipelineAndVad deferred ΓÇö session still active")
+            return
+        }
+        vadManager?.stop()
+        vadManager?.start()
+        startPipelineListening()
     }
     
     private fun stopPipelineListening() {
@@ -953,7 +981,6 @@ class WakeWordService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSta
             }
         }
     }
-fun triggerManualSession() { onWakeWordDetected() }
 
     private fun onWakeWordDetected() {
         if (wakeWordJustDetected) {
@@ -969,6 +996,12 @@ fun triggerManualSession() { onWakeWordDetected() }
         pendingNotifications.clear()
         teardownNotifSession()
         stopPipelineListening()
+        // Release VAD's AudioRecord so the Gemini recorder (geminiAudioRecorder) is the
+        // SOLE mic owner during the session. Two concurrent AudioRecords on this hardware
+        // contend for the mic and leave VAD's recorder starved/degraded after the session
+        // ends ΓÇö which is why voice wasn't recaptured after the silence timeout.
+        // VAD is not needed during GEMINI_ACTIVE (turn signals come from Gemini's VAD).
+        vadManager?.stop()
         mainScope.launch {
             delay(300L)
             showOverlay()
@@ -1081,14 +1114,7 @@ fun triggerManualSession() { onWakeWordDetected() }
         mainScope.launch {
             delay(1000L)
             wakeWordJustDetected = false
-            
-            // Only restart Vosk if no sessions are active ΓÇö prevents two AudioRecords
-            // contending for the mic (Bug 7).
-            if (geminiSession == null && !notifSessionActive) {
-                startPipelineListening()
-            } else {
-                Log.d(TAG, "ΓÜá∩╕Å resumeWakeWord deferred ΓÇö session still active")
-            }
+            restartPipelineAndVad()
         }
     }
 

@@ -15,10 +15,10 @@ data class AudioConfig(
     val audioFormat: Int = AudioFormat.ENCODING_PCM_16BIT,
     val audioSource: Int = MediaRecorder.AudioSource.MIC,
     val frameSizeSamples: Int = 512, // 32 ms frame size at 16kHz
-    val speechThreshold: Float = 0.50f, // Probability above which frame is speech
-    val silenceThreshold: Float = 0.35f, // Probability below which frame is silence
-    val minSpeechDurationMs: Long = 250L, // Onset duration to enter SpeechStarted
-    val silenceTimeoutMs: Long = 1200L, // Silence duration to trigger SpeechEnded
+    val speechThreshold: Float = 0.35f, // Probability above which frame is speech
+    val silenceThreshold: Float = 0.25f, // Probability below which frame is silence
+    val minSpeechDurationMs: Long = 120L, // Onset duration to enter SpeechStarted (low latency)
+    val silenceTimeoutMs: Long = 800L, // Silence duration to trigger SpeechEnded (faster turns)
     val bufferSizeMultiplier: Int = 4,
     val chunkSizeSamples: Int = 1280, // 80ms chunk for WakeWord/ECAPA buffering
 ) {

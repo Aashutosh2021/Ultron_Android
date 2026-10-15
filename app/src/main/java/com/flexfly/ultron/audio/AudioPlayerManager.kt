@@ -42,8 +42,9 @@ class AudioPlayerManager {
                         .setEncoding(AUDIO_FORMAT)
                         .build()
                 )
+                // Generous internal buffer (16× min) to absorb network jitter without underrunning.
                 .setBufferSizeInBytes(
-                    AudioTrack.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT) * 8
+                    AudioTrack.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT) * 16
                 )
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build()
@@ -55,8 +56,7 @@ class AudioPlayerManager {
                     try {
                         val track2 = audioTrack
                         if (track2 != null && track2.state == AudioTrack.STATE_INITIALIZED) {
-                            audioTrack?.write(bytes, 0, bytes.size)
-                            Log.d(TAG, "🔊 Wrote ${bytes.size} bytes")
+                            track2.write(bytes, 0, bytes.size)
                         } else {
                             Log.w(TAG, "AudioTrack not ready, skipping chunk")
                         }

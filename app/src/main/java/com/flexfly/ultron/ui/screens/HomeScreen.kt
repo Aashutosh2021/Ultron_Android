@@ -223,35 +223,6 @@ private fun BrandBlock(isRunning: Boolean, onStartStop: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         StartButton(isRunning = isRunning, onClick = onStartStop)
-        if (isRunning) {
-            Spacer(Modifier.height(16.dp))
-            ManualTriggerButton()
-        }
-    }
-}
-
-@Composable
-private fun ManualTriggerButton() {
-    Row(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(CardBg)
-            .border(1.dp, UltronEmber.copy(alpha = 0.5f), CircleShape)
-            .clickable { com.flexfly.ultron.service.WakeWordService.getActiveInstance()?.triggerManualSession() }
-            .padding(horizontal = 40.dp, vertical = 15.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier.size(8.dp).clip(CircleShape)
-                .background(UltronEmber)
-        )
-        Spacer(Modifier.width(10.dp))
-        Text(
-            "Speak Now (No Wake Word)",
-            color = Color.White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-        )
     }
 }
 

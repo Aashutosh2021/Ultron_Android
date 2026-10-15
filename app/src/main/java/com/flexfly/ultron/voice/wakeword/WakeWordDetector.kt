@@ -8,6 +8,8 @@ import ai.onnxruntime.OrtSession
 import java.nio.FloatBuffer
 import kotlin.system.measureTimeMillis
 
+import java.io.File
+
 /**
  * Abstraction for Wake Word Detection.
  *
@@ -38,7 +40,8 @@ interface WakeWordDetector : AutoCloseable {
  */
 class OpenWakeWordDetector(
     private val context: Context,
-    val modelName: String = "hey_jarvis.onnx",
+    val modelName: String = "mark.onnx",
+    val config: WakeWordConfig = WakeWordConfig()
 ) : WakeWordDetector {
 
     companion object {
@@ -74,8 +77,33 @@ class OpenWakeWordDetector(
             val embBytes = context.assets.open("embedding_model.onnx").use { it.readBytes() }
             embSession = env.createSession(embBytes, options)
 
-            val wakeBytes = context.assets.open(modelName).use { it.readBytes() }
-            wakeSession = env.createSession(wakeBytes, options)
+            // Copy wake word model to cache to support external data files (.data)
+            val cacheDir = context.cacheDir
+            val modelFile = File(cacheDir, modelName)
+            if (!modelFile.exists()) {
+                context.assets.open(modelName).use { input ->
+                    modelFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+
+            // Copy .data file if it exists
+            val dataFileName = "$modelName.data"
+            val dataFile = File(cacheDir, dataFileName)
+            if (!dataFile.exists()) {
+                try {
+                    context.assets.open(dataFileName).use { input ->
+                        dataFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Ignore if .data file doesn't exist in assets
+                }
+            }
+
+            wakeSession = env.createSession(modelFile.absolutePath, options)
 
             Log.d(TAG, "✅ openWakeWord pipeline (melspectrogram, embedding_model, '$modelName') initialized successfully")
         } catch (e: Exception) {

@@ -39,10 +39,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -83,6 +86,18 @@ private val RemoveRed = Color(0xFFE44C44)
  */
 @Composable
 fun SettingsScreen(prefs: AppPreferences) {
+    val service = WakeWordService.getActiveInstance()
+    var showEnrollmentDialog by remember { mutableStateOf(false) }
+
+    if (showEnrollmentDialog) {
+        VoiceEnrollmentDialog(
+            service = service,
+            onDismiss = {
+                showEnrollmentDialog = false
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -211,8 +226,12 @@ fun SettingsScreen(prefs: AppPreferences) {
                     HeroPurple,
                 )
                 
-                val service = WakeWordService.getActiveInstance()
                 var isEnrolled by remember { mutableStateOf(service?.isVoiceEnrolled() ?: false) }
+                // Reactively update if enrollment finishes while on screen
+                val debugInfo by service?.getSpeakerDebugInfo()?.collectAsState(initial = null) ?: mutableStateOf(null)
+                if (debugInfo?.enrollmentProgress == 3) {
+                    isEnrolled = true
+                }
 
                 if (isEnrolled) {
                     Row(
@@ -240,6 +259,7 @@ fun SettingsScreen(prefs: AppPreferences) {
                             .border(0.5.dp, HeroPurple.copy(0.3f), RoundedCornerShape(14.dp))
                             .clickable { 
                                 service?.startVoiceEnrollment()
+                                showEnrollmentDialog = true
                             }
                             .padding(vertical = 14.dp),
                         horizontalArrangement = Arrangement.Center,
@@ -795,5 +815,71 @@ private fun FavoriteContactRow(contact: AppPreferences.FavoriteContact, onRemove
                 .clickable { onRemove() }
                 .padding(horizontal = 10.dp, vertical = 2.dp),
         )
+    }
+}
+@Composable
+fun VoiceEnrollmentDialog(
+    service: WakeWordService?,
+    onDismiss: () -> Unit,
+) {
+    val debugInfo by service?.getSpeakerDebugInfo()?.collectAsState(initial = null) ?: mutableStateOf(null)
+    
+    val progress = debugInfo?.enrollmentProgress ?: 0
+    val isComplete = progress >= 3
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = { 
+        if (!isComplete) {
+            service?.cancelVoiceEnrollment()
+        }
+        onDismiss() 
+    }) {
+        Column(
+            modifier = Modifier
+                .background(CardBg, RoundedCornerShape(20.dp))
+                .border(1.dp, CardBorder, RoundedCornerShape(20.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("Voice Enrollment", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(16.dp))
+            
+            if (isComplete) {
+                Text("?", fontSize = 48.sp)
+                Spacer(Modifier.height(16.dp))
+                Text("Voice profile created successfully!", color = HeroGreen, fontSize = 16.sp, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(HeroGreen.copy(0.14f), RoundedCornerShape(14.dp))
+                        .clickable { onDismiss() }
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text("Done", color = HeroGreen, fontWeight = FontWeight.SemiBold)
+                }
+            } else {
+                Text("??", fontSize = 48.sp)
+                Spacer(Modifier.height(16.dp))
+                Text("Say 'Ultron'", color = HeroCyan, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(8.dp))
+                Text("Progress: ${progress}/3", color = SubText, fontSize = 16.sp)
+                
+                Spacer(Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(RemoveRed.copy(0.14f), RoundedCornerShape(14.dp))
+                        .clickable { 
+                            service?.cancelVoiceEnrollment()
+                            onDismiss() 
+                        }
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text("Cancel", color = RemoveRed, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
     }
 }

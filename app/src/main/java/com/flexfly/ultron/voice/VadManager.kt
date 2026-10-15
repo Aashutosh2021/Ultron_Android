@@ -91,6 +91,11 @@ class VadManager(
             } catch (e: SecurityException) {
                 Log.e(TAG, "❌ Security Exception: ${e.message}")
                 updateState(VadState.Error("Permission denied: ${e.message}", e))
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // Expected on intentional teardown/restart (VadManager.stop() cancels this
+                // collector). This is NOT an error — rethrow to preserve structured
+                // concurrency, and leave state intact so the pipeline can restart cleanly.
+                throw e
             } catch (e: Exception) {
                 Log.e(TAG, "❌ VAD Pipeline Exception: ${e.message}", e)
                 updateState(VadState.Error("Pipeline error: ${e.message}", e))

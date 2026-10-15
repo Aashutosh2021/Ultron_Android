@@ -8,7 +8,7 @@ package com.flexfly.ultron.voice.speaker
 data class SpeakerConfig(
     val modelPath: String = "ecapa_tdnn.onnx",
     val embeddingSize: Int = 192, // ECAPA-TDNN output vector dimensionality
-    val similarityThreshold: Float = 0.65f, // Cosine similarity threshold for owner authentication
+    val similarityThreshold: Float = 0.35f, // Cosine similarity threshold for owner authentication
     val enrollmentSampleCount: Int = 10, // Number of utterances required for enrollment
     val sampleRate: Int = 16000,
 )

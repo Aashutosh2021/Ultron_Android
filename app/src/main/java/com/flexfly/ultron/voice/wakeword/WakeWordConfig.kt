@@ -6,8 +6,8 @@ package com.flexfly.ultron.voice.wakeword
  * All parameters are configurable to prevent hardcoded magic numbers.
  */
 data class WakeWordConfig(
-    val modelPath: String = "hey_jarvis.onnx",
-    val wakeThreshold: Float = 0.10f, // Confidence threshold for wake word trigger
+    val modelPath: String = "mark.onnx",
+    val wakeThreshold: Float = 0.05f, // Confidence threshold for wake word trigger
     val cooldownMs: Long = 2000L, // Cooldown duration to prevent duplicate triggers
     val inferenceWindowMs: Long = 1280L, // Sliding window duration in ms
     val sampleRate: Int = 16000,

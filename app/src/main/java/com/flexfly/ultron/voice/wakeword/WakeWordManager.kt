@@ -95,6 +95,14 @@ class WakeWordManager(
         val currentState = _state.value
         if (currentState is WakeWordState.Cooldown || currentState is WakeWordState.WakeDetected) return
 
+        // Run inference continuously, gating on NOTHING. We deliberately do NOT gate on the
+        // local VadManager state: VadManager collapses SpeechStarted->Speaking and
+        // SpeechEnded->Idle within single frames (StateFlow conflation), so its state flips
+        // too fast to gate on — that gating created dead-windows where a spoken "Ultron" was
+        // never scored, forcing the user to repeat it many times. Scoring every frame makes
+        // wake detection responsive. A short Cooldown (below) still prevents re-trigger
+        // spam within one utterance.
+
         // Convert raw PCM to float (un-normalized) for WakeWord and Speaker stages
         val rawPcmFloats = FloatArray(frame.pcmData.size) { frame.pcmData[it].toFloat() }
 
